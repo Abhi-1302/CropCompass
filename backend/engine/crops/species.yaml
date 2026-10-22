@@ -1,0 +1,101 @@
+# Global species sheet: crop physiology shared by every region pack (docs/PLAN.md section 8.1).
+#
+# stages      Share of the season in the FAO-56 initial / development / mid-season / late stages
+#             (FAO-56 Table 11; the row used is noted on each crop).
+# kc          Crop coefficients Kc ini / mid / end for a sub-humid climate (FAO-56 Table 12).
+# root_m      Maximum effective rooting depth, m (FAO-56 Table 22, upper half of the range for rain-fed use).
+# p           Fraction of available water used before stress at ETc ~5 mm/day (FAO-56 Table 22).
+# ky          Seasonal yield response to water deficit (FAO-33, as summarised in FAO-56 Table 24).
+# heat_c      Day temperature at flowering above which seed or fruit set falls (Luo 2011, Climatic Change
+#             109:583-598; Hatfield & Prueger 2015, Weather and Climate Extremes 10:4-10).
+# hi, dm      Harvest index (dry matter) and dry-matter share of the harvested product.
+# residue_cn  Carbon-to-nitrogen ratio of the crop residue.
+# n_fixed     Nitrogen fixed by a legume at attainable yield, kg N/ha; n_credit: nitrogen left for the next crop.
+#
+# hi, dm, residue_cn and the nitrogen values are typical literature values (indicative). Fields listed in
+# `estimated` are not in the FAO tables and were set by analogy with a similar crop: they need agronomist review.
+version: 1
+
+species:
+  rice:  # Table 11 rice, tropics 30/30/60/30. Kc and p are paddy values: ponding is not modelled yet.
+    {stages: [0.20, 0.20, 0.40, 0.20], kc: [1.05, 1.20, 0.75], root_m: 0.7, p: 0.20, ky: 1.1, heat_c: 35,
+     hi: 0.45, dm: 0.86, residue_cn: 70, self_tolerant: true, estimated: [ky]}
+  wheat:  # Table 11 barley/oats/wheat, central India 15/25/50/30
+    {stages: [0.12, 0.21, 0.42, 0.25], kc: [0.30, 1.15, 0.32], root_m: 1.2, p: 0.55, ky: 1.15, heat_c: 31,
+     hi: 0.40, dm: 0.88, residue_cn: 80}
+  maize:  # Table 11 maize (grain), India dry cool 20/35/40/30
+    {stages: [0.16, 0.28, 0.32, 0.24], kc: [0.30, 1.20, 0.35], root_m: 1.3, p: 0.55, ky: 1.25, heat_c: 35,
+     hi: 0.45, dm: 0.86, residue_cn: 55}
+  sorghum:  # Table 11 sorghum 20/35/40/30
+    {stages: [0.16, 0.28, 0.32, 0.24], kc: [0.30, 1.05, 0.55], root_m: 1.5, p: 0.55, ky: 0.90, heat_c: 37,
+     hi: 0.35, dm: 0.88, residue_cn: 60, residue_toxic: true}
+  pearl_millet:  # Table 11 millet, Pakistan 15/25/40/25
+    {stages: [0.14, 0.24, 0.38, 0.24], kc: [0.30, 1.00, 0.30], root_m: 1.5, p: 0.55, ky: 0.90, heat_c: 42,
+     hi: 0.30, dm: 0.88, residue_cn: 70, small_seeded: true, estimated: [ky]}
+  finger_millet:  # as millet
+    {stages: [0.14, 0.24, 0.38, 0.24], kc: [0.30, 1.00, 0.30], root_m: 1.0, p: 0.55, ky: 0.90, heat_c: 35,
+     hi: 0.30, dm: 0.88, residue_cn: 60, small_seeded: true, estimated: [root_m, ky, heat_c]}
+  pigeonpea:  # by analogy with Table 11 dry beans, Pakistan 15/25/35/20; deep tap root
+    {stages: [0.16, 0.26, 0.37, 0.21], kc: [0.40, 1.15, 0.35], root_m: 1.5, p: 0.45, ky: 1.0, heat_c: 35,
+     hi: 0.25, dm: 0.90, residue_cn: 40, n_fixed: 70, n_credit: 35, estimated: [stages, root_m, ky, heat_c]}
+  chickpea:  # by analogy with Table 11 lentil, arid region Oct/Nov 25/35/70/40
+    {stages: [0.15, 0.21, 0.41, 0.23], kc: [0.40, 1.00, 0.35], root_m: 1.0, p: 0.50, ky: 0.90, heat_c: 35,
+     hi: 0.40, dm: 0.90, residue_cn: 25, n_fixed: 50, n_credit: 20, estimated: [stages, ky]}
+  green_gram:  # Table 11 green gram, cowpeas 20/30/30/20; Ky of beans
+    {stages: [0.20, 0.30, 0.30, 0.20], kc: [0.40, 1.05, 0.35], root_m: 0.8, p: 0.45, ky: 1.15, heat_c: 40,
+     hi: 0.30, dm: 0.90, residue_cn: 20, n_fixed: 40, n_credit: 25}
+  black_gram:  # as green gram (same genus)
+    {stages: [0.20, 0.30, 0.30, 0.20], kc: [0.40, 1.05, 0.35], root_m: 0.8, p: 0.45, ky: 1.15, heat_c: 38,
+     hi: 0.30, dm: 0.90, residue_cn: 20, n_fixed: 40, n_credit: 25, estimated: [stages, kc, root_m, p, heat_c]}
+  lentil:  # Table 11 lentil, arid region Oct/Nov 25/35/70/40; Ky of peas
+    {stages: [0.15, 0.21, 0.41, 0.23], kc: [0.40, 1.10, 0.30], root_m: 0.8, p: 0.50, ky: 1.15, heat_c: 32,
+     hi: 0.35, dm: 0.90, residue_cn: 25, n_fixed: 40, n_credit: 20, estimated: [ky]}
+  soybean:  # Table 11 soybeans, tropics 15/15/40/15
+    {stages: [0.18, 0.18, 0.46, 0.18], kc: [0.40, 1.15, 0.50], root_m: 1.0, p: 0.50, ky: 0.85, heat_c: 35,
+     hi: 0.40, dm: 0.90, residue_cn: 35, n_fixed: 90, n_credit: 20}
+  groundnut:  # Table 11 groundnut, West Africa dry season 25/35/45/25
+    {stages: [0.19, 0.27, 0.35, 0.19], kc: [0.40, 1.15, 0.60], root_m: 0.8, p: 0.50, ky: 0.70, heat_c: 34,
+     hi: 0.35, dm: 0.92, residue_cn: 20, n_fixed: 80, n_credit: 25}
+  mustard:  # Kc, root and p of rapeseed; stages by analogy with Table 11 safflower, arid Oct/Nov 35/55/60/40
+    {stages: [0.18, 0.29, 0.32, 0.21], kc: [0.35, 1.05, 0.35], root_m: 1.2, p: 0.60, ky: 0.90, heat_c: 30,
+     hi: 0.25, dm: 0.90, residue_cn: 60, small_seeded: true, estimated: [stages, ky]}
+  sunflower:  # Table 11 sunflower 25/35/45/25
+    {stages: [0.19, 0.27, 0.35, 0.19], kc: [0.35, 1.05, 0.35], root_m: 1.2, p: 0.45, ky: 0.95, heat_c: 35,
+     hi: 0.30, dm: 0.92, residue_cn: 60, residue_toxic: true}
+  sesame:  # Table 11 sesame, China 20/30/40/20
+    {stages: [0.18, 0.27, 0.37, 0.18], kc: [0.35, 1.10, 0.25], root_m: 1.0, p: 0.60, ky: 0.90, heat_c: 40,
+     hi: 0.25, dm: 0.92, residue_cn: 50, small_seeded: true, estimated: [ky, heat_c]}
+  castor:  # Table 11 castor beans, semi-arid 25/40/65/50
+    {stages: [0.14, 0.22, 0.36, 0.28], kc: [0.35, 1.15, 0.55], root_m: 1.5, p: 0.50, ky: 0.90, heat_c: 40,
+     hi: 0.30, dm: 0.92, residue_cn: 50, estimated: [ky, heat_c]}
+  cotton:  # Table 11 cotton, Texas 30/50/55/45
+    {stages: [0.17, 0.28, 0.30, 0.25], kc: [0.35, 1.18, 0.60], root_m: 1.4, p: 0.65, ky: 0.85, heat_c: 36,
+     hi: 0.30, dm: 0.92, residue_cn: 60}
+  tomato:  # Table 11 tomato, arid region Jan 30/40/40/25
+    {stages: [0.22, 0.30, 0.30, 0.18], kc: [0.60, 1.15, 0.80], root_m: 1.0, p: 0.40, ky: 1.05, heat_c: 32,
+     hi: 0.60, dm: 0.06, residue_cn: 20}
+  brinjal:  # Table 11 egg plant, arid region Oct 30/40/40/20
+    {stages: [0.23, 0.31, 0.31, 0.15], kc: [0.60, 1.05, 0.90], root_m: 0.9, p: 0.45, ky: 1.05, heat_c: 35,
+     hi: 0.55, dm: 0.08, residue_cn: 25, estimated: [ky, heat_c]}
+  chilli:  # Table 11 sweet peppers 25/35/40/20; yields are dry chilli
+    {stages: [0.21, 0.29, 0.33, 0.17], kc: [0.60, 1.05, 0.90], root_m: 0.8, p: 0.30, ky: 1.10, heat_c: 32,
+     hi: 0.40, dm: 0.88, residue_cn: 30}
+  potato:  # Table 11 potato, semi-arid Jan/Nov 25/30/30/30; heat_c is the tuber-set limit
+    {stages: [0.22, 0.26, 0.26, 0.26], kc: [0.50, 1.15, 0.75], root_m: 0.5, p: 0.35, ky: 1.10, heat_c: 29,
+     hi: 0.75, dm: 0.20, residue_cn: 20}
+  okra:  # not in the FAO tables; by analogy with egg plant
+    {stages: [0.23, 0.31, 0.31, 0.15], kc: [0.50, 1.05, 0.85], root_m: 0.9, p: 0.45, ky: 1.05, heat_c: 40,
+     hi: 0.35, dm: 0.10, residue_cn: 30, estimated: [stages, kc, root_m, p, ky, heat_c]}
+  onion:  # Table 11 onion (dry), Mediterranean 15/25/70/40
+    {stages: [0.10, 0.17, 0.46, 0.27], kc: [0.70, 1.05, 0.75], root_m: 0.4, p: 0.30, ky: 1.10, heat_c: 35,
+     hi: 0.75, dm: 0.12, residue_cn: 20, estimated: [heat_c]}
+  cabbage_cauliflower:  # Table 11 cauliflower 35/50/40/15; Ky of cabbage
+    {stages: [0.25, 0.36, 0.28, 0.11], kc: [0.70, 1.05, 0.95], root_m: 0.6, p: 0.45, ky: 0.95, heat_c: 30,
+     hi: 0.55, dm: 0.08, residue_cn: 15, estimated: [heat_c]}
+  bottle_gourd:  # Kc, root and p of pumpkin / winter squash (Table 11 20/30/30/20); Ky of watermelon
+    {stages: [0.20, 0.30, 0.30, 0.20], kc: [0.50, 1.00, 0.80], root_m: 1.0, p: 0.35, ky: 1.10, heat_c: 38,
+     hi: 0.50, dm: 0.05, residue_cn: 25, estimated: [ky, heat_c]}
+  sunn_hemp:  # green manure ploughed in at flowering, so there is no late stage; yield is dry biomass
+    {stages: [0.25, 0.40, 0.35, 0.00], kc: [0.40, 1.05, 1.05], root_m: 1.0, p: 0.50, ky: 1.0, heat_c: null,
+     hi: null, dm: null, residue_cn: 20, n_fixed: 100, n_credit: 80, green_manure: true,
+     estimated: [stages, kc, root_m, p, ky]}
