@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
@@ -28,12 +29,29 @@ class Settings(BaseSettings):
     power_refresh_days: int = 60
     public_app_url: str = "http://localhost:5173"  # base of links in emails
     password_reset_minutes: int = 30
-    smtp_host: str | None = None  # without it (local development) emails are written to the server log
+    mailjet_api_key: str | None = Field(default=None, repr=False)
+    mailjet_api_secret: str | None = Field(default=None, repr=False)
+    mailjet_from: str | None = None
+    mailjet_host: str = "in.mailjet.com"
+    mailjet_port: int = 2525
+    smtp_host: str | None = None
     smtp_port: int = 587
     smtp_username: str | None = None
     smtp_password: str | None = None
     smtp_from: str = "AuraFarming <no-reply@localhost>"
     smtp_starttls: bool = True
+
+    @property
+    def mailjet_requested(self) -> bool:
+        return bool(self.mailjet_api_key or self.mailjet_api_secret or self.mailjet_from)
+
+    @property
+    def email_delivery(self) -> Literal["email", "unavailable", "development"]:
+        if self.mailjet_requested:
+            return "email" if self.mailjet_api_key and self.mailjet_api_secret and self.mailjet_from else "unavailable"
+        if self.smtp_host:
+            return "email"
+        return "unavailable" if self.cookie_secure else "development"
 
     @field_validator("database_url", "database_url_unpooled")
     @classmethod

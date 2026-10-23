@@ -64,7 +64,16 @@ def synthetic_power(start: str = "1991-01-01", end: str | None = None, seed: int
 
 @pytest.fixture
 def settings() -> Settings:
-    return Settings(_env_file=None, database_url="sqlite://", cookie_secure=False, allowed_origins="http://testserver")
+    return Settings(
+        _env_file=None,
+        database_url="sqlite://",
+        cookie_secure=False,
+        allowed_origins="http://testserver",
+        smtp_host=None,
+        mailjet_api_key=None,
+        mailjet_api_secret=None,
+        mailjet_from=None,
+    )
 
 
 def modis_composites(first_year: int = 2015, until: date | None = None) -> list[tuple[str, date]]:

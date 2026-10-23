@@ -27,6 +27,33 @@ npm run dev                          # http://localhost:5173, proxies /api to :8
 
 Checks: `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\ruff.exe check .` (backend), `npm run build` (frontend).
 
+## Email with Mailjet
+
+Password-reset emails use the shared Python mailer in `backend/app/services/mailer.py`; no Node mail service is needed.
+Set these values in your ignored `backend/.env` or your backend host's secret environment settings:
+
+```dotenv
+MAILJET_API_KEY=<your Mailjet API key>
+MAILJET_API_SECRET=<your Mailjet secret key>
+MAILJET_FROM="AuraFarming <your-verified-sender@example.com>"
+PUBLIC_APP_URL=https://your-frontend-domain
+```
+
+Verify the sender address or domain in Mailjet first; configure SPF/DKIM for a domain you own. Keep `PUBLIC_APP_URL`
+pointing to your local frontend during development. Restart FastAPI after changing environment settings.
+The default transport is `in.mailjet.com:2525` with mandatory STARTTLS and certificate verification before login.
+Optional `MAILJET_HOST` and `MAILJET_PORT` override the endpoint to match your Mailjet account's SMTP settings.
+Never put these credentials in frontend `VITE_*` variables or commit them.
+
+Mailjet takes precedence over generic `SMTP_*` settings when any Mailjet key, secret or sender is set. All three are
+required; incomplete settings report password-reset email as unavailable without issuing tokens or logging links.
+Without Mailjet, existing SMTP settings still work. With neither provider and `COOKIE_SECURE=false`, local development
+continues to log reset links; deployed HTTPS must use `COOKIE_SECURE=true`, which disables that fallback.
+
+Emails are plain text and sent in a background task. The reset response acknowledges a request, not successful
+delivery; SMTP failures are logged without message bodies or credentials, and there is no durable retry queue.
+Tests mock SMTP and do not send real emails. Verify actual delivery with a password-reset request after configuring Mailjet.
+
 ## Neon PostgreSQL
 
 The existing FastAPI/SQLAlchemy backend uses psycopg; the browser never connects to Neon directly.

@@ -132,7 +132,7 @@ def forgot_password(
     email = body.email.lower()
     if not limiters["reset_ip"].hit(client_ip(request)) or not limiters["reset_email"].hit(email):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, TOO_MANY)
-    delivery = "email" if settings.smtp_host else "unavailable" if settings.cookie_secure else "development"
+    delivery = settings.email_delivery
     if delivery == "unavailable":
         return {"detail": "Password-reset email is not configured. Contact the administrator.", "delivery": delivery}
     user = db.scalar(select(User).where(User.email == email))

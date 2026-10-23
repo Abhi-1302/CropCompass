@@ -60,3 +60,20 @@ def test_sqlite_default_without_environment_files(monkeypatch: pytest.MonkeyPatc
     monkeypatch.delenv("DATABASE_URL_UNPOOLED", raising=False)
     settings = Settings(_env_file=None)
     assert settings.database_url == settings.migration_database_url == "sqlite:///./dev.db"
+
+
+def test_mailjet_environment_settings(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setenv("MAILJET_API_KEY", "example-mailjet-key")
+    monkeypatch.setenv("MAILJET_API_SECRET", "example-mailjet-secret")
+    monkeypatch.setenv("MAILJET_FROM", "AuraFarming <sender@example.com>")
+    monkeypatch.delenv("MAILJET_HOST", raising=False)
+    monkeypatch.delenv("MAILJET_PORT", raising=False)
+    settings = Settings(_env_file=None)
+    assert settings.mailjet_api_key == "example-mailjet-key"
+    assert settings.mailjet_api_secret == "example-mailjet-secret"
+    assert settings.mailjet_from == "AuraFarming <sender@example.com>"
+    assert settings.mailjet_host == "in.mailjet.com"
+    assert settings.mailjet_port == 2525
+    assert settings.email_delivery == "email"
+    assert settings.mailjet_api_key not in repr(settings)
+    assert settings.mailjet_api_secret not in repr(settings)

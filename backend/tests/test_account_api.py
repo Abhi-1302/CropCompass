@@ -4,6 +4,7 @@ import json
 import re
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select, update
 
@@ -116,13 +117,52 @@ def test_unconfigured_deployed_reset_reports_service_state_for_every_email(clien
         assert db.scalar(select(func.count()).select_from(PasswordReset)) == 0
 
 
-def test_configured_reset_reports_request_not_delivery(client, monkeypatch):
+@pytest.mark.parametrize(
+    "mail_settings",
+    [
+        {"smtp_host": "smtp.example.com"},
+        {
+            "mailjet_api_key": "test-key",
+            "mailjet_api_secret": "test-secret",
+            "mailjet_from": "AuraFarming <sender@example.com>",
+        },
+    ],
+)
+def test_configured_reset_reports_request_not_delivery(client, monkeypatch, mail_settings):
     sent = capture_emails(monkeypatch)
     register(client)
-    client.app.state.settings.smtp_host = "smtp.example.com"
+    client.app.state.settings.cookie_secure = True
+    for name, value in mail_settings.items():
+        setattr(client.app.state.settings, name, value)
     response = client.post("/api/v1/auth/password/forgot", json={"email": "asha@example.com"})
+    unknown = client.post("/api/v1/auth/password/forgot", json={"email": "nobody@example.com"})
+    assert response.status_code == unknown.status_code == 202
+    assert response.json() == unknown.json()
     assert response.json()["delivery"] == "email" and len(sent) == 1
     assert "will be attempted" in response.json()["detail"]
+
+
+@pytest.mark.parametrize("missing", ["mailjet_api_key", "mailjet_api_secret", "mailjet_from"])
+@pytest.mark.parametrize("cookie_secure", [False, True])
+def test_incomplete_mailjet_does_not_issue_reset_tokens(client, monkeypatch, session_factory, missing, cookie_secure):
+    sent = capture_emails(monkeypatch)
+    register(client)
+    settings = client.app.state.settings
+    settings.cookie_secure = cookie_secure
+    settings.mailjet_api_key = "test-key"
+    settings.mailjet_api_secret = "test-secret"
+    settings.mailjet_from = "AuraFarming <sender@example.com>"
+    settings.smtp_host = "smtp.example.com"
+    setattr(settings, missing, None)
+    url = "/api/v1/auth/password/forgot"
+    known = client.post(url, json={"email": "asha@example.com"})
+    unknown = client.post(url, json={"email": "nobody@example.com"})
+    assert known.status_code == unknown.status_code == 202
+    assert known.json() == unknown.json()
+    assert known.json()["delivery"] == "unavailable"
+    assert sent == []
+    with session_factory() as db:
+        assert db.scalar(select(func.count()).select_from(PasswordReset)) == 0
 
 
 def test_export_contains_the_users_data_but_no_secrets(client):
