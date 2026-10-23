@@ -27,6 +27,49 @@ npm run dev                          # http://localhost:5173, proxies /api to :8
 
 Checks: `.\.venv\Scripts\python.exe -m pytest` and `.\.venv\Scripts\ruff.exe check .` (backend), `npm run build` (frontend).
 
+## Neon PostgreSQL
+
+The existing FastAPI/SQLAlchemy backend uses psycopg; the browser never connects to Neon directly.
+Only Postgres is enabled in `neon.ts`. Application authentication remains in FastAPI.
+
+From the repository root, after installing the Neon CLI and signing in:
+
+```powershell
+npm ci
+npm --prefix frontend ci
+neon init -y --org-id org-curly-mud-99960939 --project-id super-scene-03741720 --branch production --services postgres --agent vscode
+neon deploy
+npm run build
+```
+
+`neon deploy` provisions database services and pulls credentials; it does not host the frontend or FastAPI.
+It writes `.env.local` (or `.env` if one exists). Settings load `backend/.env`, root `.env`, then root `.env.local`,
+with later files winning; process environment variables take precedence over every file. Avoid keeping stale
+root env files for a different branch. All real env files and `.neon` are ignored by Git.
+
+- `DATABASE_URL`: pooled connection for the API.
+- `DATABASE_URL_UNPOOLED`: direct connection for Alembic; falls back to `DATABASE_URL` if omitted.
+- Keep Neon's TLS options. Never put either URL in frontend variables or commit them.
+- Local SQLite accounts, farms and cached weather are not uploaded by migrations. A new Neon database starts empty.
+
+Apply migrations from `backend/` with `.\.venv\Scripts\alembic.exe upgrade head`, then start FastAPI as above.
+From the root, `npm run dev` starts the frontend. Restart FastAPI after switching Neon branches or env files.
+For local HTTP only, retain `COOKIE_SECURE=false` in `backend/.env`; deployed HTTPS must use `true`.
+
+The opt-in integration test uses real Neon Postgres but synthetic weather/soil/satellite fixtures. It requires an
+already-migrated disposable branch with no weather data and refuses the configured application endpoint. Pull that
+branch's credentials into a separate ignored `.env.neon-test` file, leaving the app's root env files unchanged.
+From the repository root:
+
+```powershell
+$env:AURAFARMING_NEON_TEST_ENV = (Resolve-Path .env.neon-test).Path
+.\backend\.venv\Scripts\python.exe -m pytest -q backend/tests/test_neon.py
+Remove-Item Env:AURAFARMING_NEON_TEST_ENV
+```
+
+Normal regression tests remain isolated on SQLite and skip this opt-in test. Never point fixture-based tests at
+production. Test migrations on a disposable branch first and take a provider backup before changing a populated database.
+
 The CSV files in the repository root are the original 2024 sample data; they are used only as test fixtures.
 
 ## Weather verification and repair

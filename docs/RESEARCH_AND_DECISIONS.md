@@ -249,7 +249,7 @@ independent recent observations are appropriate future comparisons. The fallback
 | D02 | Global analytics engine plus regional crop packs; India first | Reuse mechanics without pretending local calendars and economics generalise everywhere |
 | D03 | Transparent simulation and rules; no runtime LLM | Inspectable reasons and reproducible calculations; no learned predictive-accuracy claim |
 | D04 | React/Vite/TypeScript UI and Python/FastAPI backend | Responsive interaction plus scientific Python; same-origin API avoids cross-site cookie dependency |
-| D05 | SQLite for local work; SQLAlchemy/Alembic and planned Neon Postgres | Easy development, migration path; production provider behavior still unverified |
+| D05 | SQLite fallback; SQLAlchemy/Alembic and Neon Postgres | Neon migrations and isolated integration/browser checks passed on 23 October; hosted HTTPS and production-load behavior remain unverified |
 | D06 | One field/location per farm, multiple farms per account | Simple ownership and state model; not multi-field spatial optimisation |
 | D07 | Pin or drawn polygon with centre/area | Convenient location capture; polygon does not increase NASA resolution |
 | D08 | Weather shared by snapped grid cell | Avoid identical downloads and egress; nearby farms intentionally share coarse weather |
@@ -286,7 +286,9 @@ independent recent observations are appropriate future comparisons. The fallback
 
 ### Proposed Features That Must Not Be Described as Delivered
 
-- Hosted Neon/HTTPS production deployment and CI certification.
+- Hosted HTTPS frontend/API deployment and CI certification. Neon database connectivity and migrations are now verified,
+  including isolated fixture-based integration tests and live browser authentication through the local app; this is not
+  a production-load or suspend/resume certification. See the QA report's Neon integration section.
 - Region packs outside India, future climate projection ingestion and automatic similar-year dashboard matching.
 - Acre-unit toggle, detailed Soil Health Card N/P/K/EC integration, live or farmer-overridden prices, email verification
   and phone OTP, despite their presence in earlier product ideas.

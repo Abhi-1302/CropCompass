@@ -1,4 +1,4 @@
-"""Runtime settings, read from environment variables or backend/.env."""
+"""Runtime settings from the environment, backend/.env and root Neon env files."""
 
 from __future__ import annotations
 
@@ -9,12 +9,15 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+ROOT_DIR = ENV_FILE.parent.parent
+ENV_FILES = (ENV_FILE, ROOT_DIR / ".env", ROOT_DIR / ".env.local")
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ENV_FILE, env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(env_file=ENV_FILES, env_file_encoding="utf-8", extra="ignore")
 
     database_url: str = "sqlite:///./dev.db"
+    database_url_unpooled: str | None = None
     cookie_secure: bool = True
     session_ttl_days: int = 14
     allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
@@ -32,13 +35,21 @@ class Settings(BaseSettings):
     smtp_from: str = "AuraFarming <no-reply@localhost>"
     smtp_starttls: bool = True
 
-    @field_validator("database_url")
+    @field_validator("database_url", "database_url_unpooled")
     @classmethod
-    def _use_psycopg_driver(cls, value: str) -> str:
+    def _use_psycopg_driver(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
         for prefix in ("postgres://", "postgresql://"):
             if value.startswith(prefix):
                 return "postgresql+psycopg://" + value.removeprefix(prefix)
         return value
+
+    @property
+    def migration_database_url(self) -> str:
+        if self.database_url.startswith("sqlite"):
+            return self.database_url
+        return self.database_url_unpooled or self.database_url
 
     @property
     def origins(self) -> set[str]:

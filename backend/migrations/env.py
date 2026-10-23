@@ -1,4 +1,4 @@
-"""Alembic environment: uses DATABASE_URL from app settings (env var or backend/.env)."""
+"""Alembic environment: prefers the direct database URL from app settings."""
 
 from logging.config import fileConfig
 
@@ -13,7 +13,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 target_metadata = Base.metadata
-URL = get_settings().database_url
+URL = get_settings().migration_database_url
 IS_SQLITE = URL.startswith("sqlite")
 
 

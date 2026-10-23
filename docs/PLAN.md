@@ -702,8 +702,10 @@ plans and confidence badges ("Plan" tab). Since then: Hindi and Telugu, account 
 delete) and password reset by email, a map on Add farm (OpenStreetMap streets, place search, pin or drawn boundary
 that sets the centre and area), farmer soil values used by every model, one journal-based soil-water figure on
 the Climate and Plan tabs, a top-3 home card, and the source of every default price (MSP or indicative). Still open:
-the Neon connection, CI and deployment (phase 1), analog years (phase 3), and native-speaker review of the Hindi and
-Telugu text. Next: phase 7; recent weather is unresolved, with the explicit limited-advice policy below.
+CI and hosted HTTPS deployment (phase 1), analog years (phase 3), and native-speaker review of the Hindi and
+Telugu text. Neon connectivity, migrations 0001-0005 and real database integration tests passed on 23 October;
+the frontend/API still run locally, and SQLite data was not uploaded. See the QA report's Neon section.
+Next: phase 7; recent weather is unresolved, with the explicit limited-advice policy below.
 
 **23 October QA remediation:** migration 0005 adds weather quality, dataset revisions and annual checkpoints.
 Annual LST downloads validate units, coverage, missingness, physical bounds and monthly rainfall/EVLAND consistency;
