@@ -11,17 +11,28 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Sync fork
+      - name: Checkout fork
         uses: actions/checkout@v4
         with:
-          repository: Praannjaal/CropCompass
           ref: main
-          token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
 
-      - name: Push upstream changes to fork
+      - name: Configure Git
         run: |
-          git push https://x-access-token:${GITHUB_TOKEN}@github.com/Abhi-1302/YOUR_REPO.git HEAD:main
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Add upstream and fetch changes
+        run: |
+          git remote add upstream https://github.com/Praannjaal/CropCompass.git
+          git fetch upstream main
+
+      - name: Merge upstream changes
+        run: |
+          git merge upstream/main --no-edit
+
+      - name: Push changes to fork
+        run: |
+          git push origin main
