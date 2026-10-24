@@ -1,12 +1,17 @@
-name: Sync upstream
+name: Sync Upstream and Create PR
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-upstream-pr
+  cancel-in-progress: false
 
 jobs:
   sync:
@@ -24,15 +29,48 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-      - name: Add upstream and fetch changes
+      - name: Fetch upstream
         run: |
           git remote add upstream https://github.com/Praannjaal/CropCompass.git
           git fetch upstream main
 
-      - name: Merge upstream changes
+      - name: Create sync branch and merge upstream
+        id: sync
         run: |
-          git merge upstream/main --no-edit
+          BRANCH="sync/upstream-$(date -u +%Y%m%d-%H%M%S)"
+          echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
 
-      - name: Push changes to fork
+          git checkout -b "$BRANCH"
+
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "Upstream changes are already included."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git merge upstream/main --no-edit; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Merge conflict detected. No PR will be created."
+            git merge --abort
+            exit 1
+          fi
+
+      - name: Push sync branch
+        if: steps.sync.outputs.changed == 'true'
         run: |
-          git push origin main
+          git push origin "${{ steps.sync.outputs.branch }}"
+
+      - name: Create Pull Request
+        if: steps.sync.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ steps.sync.outputs.branch }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh pr create \
+            --repo "$REPO" \
+            --base main \
+            --head "$BRANCH" \
+            --title "Sync upstream changes from CropCompass" \
+            --body "Automated PR to merge the latest changes from Praannjaal/CropCompass into this fork's main branch."
