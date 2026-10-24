@@ -1,0 +1,166 @@
+# India crop pack v1: identity, family and shared pest/disease groups used by the season journal and the
+# rotation rules, plus the regional agronomy used by the crop models (crop physiology is in species.yaml).
+# Durations are typical sowing-to-harvest (or transplanting-to-harvest) ranges in days.
+version: 1
+region: IN
+
+seasons:
+  kharif: {name: Kharif (monsoon), sowing_months: [6, 7, 8, 9]}
+  rabi: {name: Rabi (post-monsoon), sowing_months: [10, 11, 12, 1]}
+  summer: {name: Summer (zaid), sowing_months: [2, 3, 4, 5]}
+  other: {name: Other / perennial, sowing_months: []}
+
+families:
+  Poaceae: {name: Cereals & millets, nutrient_role: heavy feeder, gap_years: 1}
+  Fabaceae: {name: Legumes, nutrient_role: nitrogen fixer, gap_years: 2}
+  Malvaceae: {name: Mallows, nutrient_role: heavy feeder, gap_years: 1}
+  Asteraceae: {name: Composites, nutrient_role: moderate feeder, gap_years: 2}
+  Solanaceae: {name: Nightshades, nutrient_role: heavy feeder, gap_years: 3}
+  Brassicaceae: {name: Brassicas, nutrient_role: heavy feeder, gap_years: 2}
+  Amaryllidaceae: {name: Alliums, nutrient_role: light feeder, gap_years: 2}
+  Cucurbitaceae: {name: Cucurbits, nutrient_role: moderate feeder, gap_years: 2}
+  Pedaliaceae: {name: Sesame, nutrient_role: light feeder, gap_years: 1}
+  Euphorbiaceae: {name: Castor, nutrient_role: moderate feeder, gap_years: 1}
+
+host_groups:
+  pod_borer: Pod borer / bollworm (Helicoverpa)
+  whitefly_viruses: Whitefly-borne leaf curl and mosaic viruses
+  root_knot_nematode: Root-knot nematodes
+  dry_root_rot: Dry root rot / charcoal rot (Macrophomina)
+  collar_rot: Collar and stem rot (Sclerotium rolfsii)
+  bacterial_wilt: Bacterial wilt (Ralstonia)
+  fall_armyworm: Fall armyworm
+  stem_borer: Stem borers
+  pink_bollworm: Pink bollworm
+  thrips: Thrips
+  diamondback_moth: Diamondback moth
+  fruit_fly: Fruit fly
+  striga: Striga (witchweed)
+
+crops:
+  - {id: rice, name: Rice (paddy), family: Poaceae, group: cereal, seasons: [kharif, rabi], duration_days: [100, 150], host_groups: [stem_borer]}
+  - {id: wheat, name: Wheat, family: Poaceae, group: cereal, seasons: [rabi], duration_days: [110, 140], host_groups: []}
+  - {id: maize, name: Maize, family: Poaceae, group: cereal, seasons: [kharif, rabi], duration_days: [90, 120], host_groups: [fall_armyworm, stem_borer, pod_borer]}
+  - {id: sorghum, name: Sorghum (jowar), family: Poaceae, group: cereal, seasons: [kharif, rabi], duration_days: [100, 120], host_groups: [fall_armyworm, stem_borer, dry_root_rot, striga]}
+  - {id: pearl_millet, name: Pearl millet (bajra), family: Poaceae, group: cereal, seasons: [kharif, summer], duration_days: [75, 95], host_groups: [stem_borer, striga]}
+  - {id: finger_millet, name: Finger millet (ragi), family: Poaceae, group: cereal, seasons: [kharif, rabi], duration_days: [100, 120], host_groups: []}
+  - {id: pigeonpea, name: Pigeonpea (red gram), family: Fabaceae, group: pulse, seasons: [kharif], duration_days: [150, 200], host_groups: [pod_borer, root_knot_nematode]}
+  - {id: chickpea, name: Chickpea (Bengal gram), family: Fabaceae, group: pulse, seasons: [rabi], duration_days: [90, 120], host_groups: [pod_borer, dry_root_rot, collar_rot, root_knot_nematode]}
+  - {id: green_gram, name: Green gram (moong), family: Fabaceae, group: pulse, seasons: [kharif, rabi, summer], duration_days: [60, 75], host_groups: [whitefly_viruses, dry_root_rot]}
+  - {id: black_gram, name: Black gram (urad), family: Fabaceae, group: pulse, seasons: [kharif, rabi, summer], duration_days: [70, 90], host_groups: [whitefly_viruses, dry_root_rot]}
+  - {id: lentil, name: Lentil (masoor), family: Fabaceae, group: pulse, seasons: [rabi], duration_days: [100, 130], host_groups: [collar_rot]}
+  - {id: soybean, name: Soybean, family: Fabaceae, group: oilseed, seasons: [kharif], duration_days: [90, 110], host_groups: [dry_root_rot, collar_rot, whitefly_viruses]}
+  - {id: groundnut, name: Groundnut, family: Fabaceae, group: oilseed, seasons: [kharif, rabi, summer], duration_days: [100, 130], host_groups: [collar_rot, root_knot_nematode]}
+  - {id: mustard, name: Mustard, family: Brassicaceae, group: oilseed, seasons: [rabi], duration_days: [100, 140], host_groups: []}
+  - {id: sunflower, name: Sunflower, family: Asteraceae, group: oilseed, seasons: [kharif, rabi], duration_days: [90, 110], host_groups: [pod_borer, dry_root_rot]}
+  - {id: sesame, name: Sesame (til), family: Pedaliaceae, group: oilseed, seasons: [kharif, summer], duration_days: [80, 100], host_groups: [dry_root_rot]}
+  - {id: castor, name: Castor, family: Euphorbiaceae, group: oilseed, seasons: [kharif], duration_days: [150, 180], host_groups: []}
+  - {id: cotton, name: Cotton, family: Malvaceae, group: fibre, seasons: [kharif], duration_days: [150, 180], host_groups: [pod_borer, pink_bollworm, whitefly_viruses, root_knot_nematode]}
+  - {id: tomato, name: Tomato, family: Solanaceae, group: vegetable, seasons: [kharif, rabi, summer], duration_days: [100, 140], host_groups: [pod_borer, whitefly_viruses, root_knot_nematode, bacterial_wilt, collar_rot]}
+  - {id: brinjal, name: Brinjal (eggplant), family: Solanaceae, group: vegetable, seasons: [kharif, rabi], duration_days: [120, 160], host_groups: [root_knot_nematode, bacterial_wilt]}
+  - {id: chilli, name: Chilli, family: Solanaceae, group: vegetable, seasons: [kharif, rabi], duration_days: [150, 200], host_groups: [whitefly_viruses, thrips, collar_rot, bacterial_wilt]}
+  - {id: potato, name: Potato, family: Solanaceae, group: vegetable, seasons: [rabi], duration_days: [90, 120], host_groups: [bacterial_wilt, root_knot_nematode]}
+  - {id: okra, name: Okra (bhindi), family: Malvaceae, group: vegetable, seasons: [kharif, summer], duration_days: [90, 110], host_groups: [whitefly_viruses, root_knot_nematode]}
+  - {id: onion, name: Onion, family: Amaryllidaceae, group: vegetable, seasons: [rabi, kharif], duration_days: [110, 150], host_groups: [thrips]}
+  - {id: cabbage_cauliflower, name: Cabbage / cauliflower, family: Brassicaceae, group: vegetable, seasons: [rabi], duration_days: [90, 120], host_groups: [diamondback_moth]}
+  - {id: bottle_gourd, name: Bottle gourd, family: Cucurbitaceae, group: vegetable, seasons: [kharif, summer], duration_days: [90, 120], host_groups: [fruit_fly, root_knot_nematode]}
+  - {id: sunn_hemp, name: Sunn hemp (green manure), family: Fabaceae, group: green_manure, seasons: [kharif, summer], duration_days: [45, 60], host_groups: []}
+  - {id: other, name: Other crop, family: null, group: other, seasons: [kharif, rabi, summer, other], duration_days: [30, 365], host_groups: []}
+  - {id: fallow, name: Fallow (no crop), family: null, group: other, seasons: [kharif, rabi, summer, other], duration_days: [30, 365], host_groups: []}
+
+groups:
+  cereal: Cereals & millets
+  pulse: Pulses
+  oilseed: Oilseeds
+  fibre: Fibre
+  vegetable: Vegetables & spices
+  green_manure: Green manure
+  other: Other
+
+problems:
+  drought: {name: Drought or long dry spell}
+  excess_rain: {name: Waterlogging or heavy rain}
+  heat: {name: Heat stress}
+  pod_borer: {name: Pod borer / bollworm, host_groups: [pod_borer]}
+  leaf_curl_mosaic: {name: Leaf curl / yellow mosaic, host_groups: [whitefly_viruses]}
+  wilt: {name: Wilt, host_groups: [bacterial_wilt]}
+  root_rot: {name: Root or collar rot, host_groups: [dry_root_rot, collar_rot]}
+  nematodes: {name: Root knots (nematodes), host_groups: [root_knot_nematode]}
+  leaf_disease: {name: Leaf spots or blight}
+  weeds: {name: Heavy weeds}
+  other_pests: {name: Other pests}
+  poor_germination: {name: Poor germination}
+
+residue:
+  removed: Removed from field
+  burned: Burned
+  incorporated: Ploughed in
+  mulched: Left on surface (mulch)
+  grazed: Grazed by animals
+
+# Regional agronomy (pilot: Telangana / Deccan plateau).
+# sowing  Sowing (or transplanting) window per season, month-day.
+# ym      Attainable yield with good management, kg/ha (fresh weight for vegetables). Indicative values,
+#         to be validated against district statistics (DES) and state packages of practice.
+# n_rec   Typical recommended fertiliser nitrogen, kg N/ha (state packages of practice; indicative).
+# price   Rs/kg of product: minimum support price, kharif 2025-26 and rabi marketing season 2026-27 (CACP);
+#         crops without an MSP (castor, vegetables) use indicative farm-gate prices. Update every season.
+# cost    Indicative paid-out cost of cultivation, Rs/ha, excluding nitrogen fertiliser (priced separately).
+agronomy:
+  rice: {ym: 6000, n_rec: 120, price: 23.69, cost: 65000, product: paddy, sowing: {kharif: ["06-20", "08-15"], rabi: ["12-01", "01-31"]}}
+  wheat: {ym: 4000, n_rec: 120, price: 25.85, cost: 45000, sowing: {rabi: ["11-01", "12-15"]}}
+  maize: {ym: 6500, n_rec: 180, price: 24.00, cost: 45000, sowing: {kharif: ["06-15", "07-31"], rabi: ["10-01", "11-30"]}}
+  sorghum: {ym: 3500, n_rec: 80, price: 36.99, cost: 30000, sowing: {kharif: ["06-15", "07-31"], rabi: ["09-25", "10-31"]}}
+  pearl_millet: {ym: 2500, n_rec: 60, price: 27.75, cost: 25000, sowing: {kharif: ["06-15", "08-15"], summer: ["02-01", "03-15"]}}
+  finger_millet: {ym: 2500, n_rec: 60, price: 48.86, cost: 30000, sowing: {kharif: ["06-15", "08-15"], rabi: ["10-01", "11-30"]}}
+  pigeonpea: {ym: 1500, n_rec: 20, price: 80.00, cost: 35000, sowing: {kharif: ["06-15", "07-31"]}}
+  chickpea: {ym: 1800, n_rec: 20, price: 58.75, cost: 35000, sowing: {rabi: ["10-01", "11-15"]}}
+  green_gram:
+    {ym: 1000, n_rec: 20, price: 87.68, cost: 25000,
+     sowing: {kharif: ["06-15", "07-31"], rabi: ["10-01", "11-15"], summer: ["02-01", "03-15"]}}
+  black_gram:
+    {ym: 1100, n_rec: 20, price: 78.00, cost: 25000,
+     sowing: {kharif: ["06-15", "07-31"], rabi: ["10-01", "11-30"], summer: ["02-01", "03-15"]}}
+  lentil: {ym: 1200, n_rec: 20, price: 70.00, cost: 28000, sowing: {rabi: ["10-15", "11-30"]}}
+  soybean: {ym: 2000, n_rec: 30, price: 53.28, cost: 35000, sowing: {kharif: ["06-15", "07-15"]}}
+  groundnut:
+    {ym: 2500, n_rec: 20, price: 72.63, cost: 55000, product: pods,
+     sowing: {kharif: ["06-15", "07-31"], rabi: ["11-15", "12-31"], summer: ["02-01", "02-28"]}}
+  mustard: {ym: 1500, n_rec: 80, price: 62.00, cost: 30000, sowing: {rabi: ["10-01", "11-15"]}}
+  sunflower: {ym: 1800, n_rec: 60, price: 77.21, cost: 32000, sowing: {kharif: ["06-15", "07-31"], rabi: ["10-15", "11-30"]}}
+  sesame: {ym: 800, n_rec: 40, price: 98.46, cost: 25000, sowing: {kharif: ["06-15", "07-31"], summer: ["02-01", "03-15"]}}
+  castor: {ym: 1800, n_rec: 60, price: 60.00, cost: 30000, sowing: {kharif: ["06-15", "07-31"]}}
+  cotton: {ym: 2500, n_rec: 120, price: 77.10, cost: 70000, product: seed cotton, sowing: {kharif: ["06-01", "07-15"]}}
+  tomato:
+    {ym: 35000, n_rec: 150, price: 12.00, cost: 150000,
+     sowing: {kharif: ["06-15", "07-31"], rabi: ["10-01", "11-30"], summer: ["02-01", "03-15"]}}
+  brinjal: {ym: 30000, n_rec: 120, price: 15.00, cost: 140000, sowing: {kharif: ["06-15", "07-31"], rabi: ["10-01", "11-30"]}}
+  chilli:
+    {ym: 3500, n_rec: 150, price: 150.00, cost: 200000, product: dry chilli,
+     sowing: {kharif: ["07-15", "09-15"], rabi: ["10-01", "11-30"]}}
+  potato: {ym: 25000, n_rec: 150, price: 12.00, cost: 130000, sowing: {rabi: ["10-15", "11-30"]}}
+  okra: {ym: 12000, n_rec: 100, price: 20.00, cost: 90000, sowing: {kharif: ["06-15", "07-31"], summer: ["02-01", "03-15"]}}
+  onion: {ym: 25000, n_rec: 100, price: 15.00, cost: 120000, sowing: {rabi: ["11-01", "12-31"], kharif: ["06-15", "07-31"]}}
+  cabbage_cauliflower: {ym: 28000, n_rec: 150, price: 10.00, cost: 110000, sowing: {rabi: ["10-01", "11-30"]}}
+  bottle_gourd: {ym: 30000, n_rec: 80, price: 10.00, cost: 80000, sowing: {kharif: ["06-15", "07-31"], summer: ["02-01", "03-15"]}}
+  sunn_hemp:
+    {ym: 4000, n_rec: 0, price: 0, cost: 6000, product: dry biomass,
+     sowing: {kharif: ["06-01", "07-15"], summer: ["04-15", "05-31"]}}
+
+economics:
+  currency: INR
+  n_price_per_kg: 13  # urea at the subsidised Rs 266.50 per 45 kg bag, 46% N
+  validated: false  # prices and costs are indicative until reviewed with local data
+  # Where each default price comes from (shown next to every figure); other crops use indicative farm-gate
+  # prices, and every cost is an indicative paid-out cost.
+  price_sources:
+    msp_kharif: [rice, maize, sorghum, pearl_millet, finger_millet, pigeonpea, green_gram, black_gram, soybean,
+                 groundnut, sunflower, sesame, cotton]
+    msp_rabi: [wheat, chickpea, lentil, mustard]
+
+simulation:
+  turnaround_days: 10  # land preparation between one harvest and the next sowing
+  sowing_rain_mm: 20  # rain in 3 days that allows rain-fed sowing (the onset rule's threshold)
+  sowing_soil_fraction: 0.5  # ...or stored soil water at least this share of capacity (sowing on residual moisture)
+  protective_irrigations: 2
+  baseline_practice: [{crop: maize, season: kharif, residue: removed}]  # assumed when the journal is empty
