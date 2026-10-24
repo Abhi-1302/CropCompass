@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Push upstream changes to fork
-          run: |
-            git push https://x-access-token:${GITHUB_TOKEN}@github.com/Abhi-1302/YOUR_REPO.git HEAD:main
+        run: |
+          git push https://x-access-token:${GITHUB_TOKEN}@github.com/Abhi-1302/YOUR_REPO.git HEAD:main
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
