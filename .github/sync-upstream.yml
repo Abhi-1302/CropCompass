@@ -1,0 +1,27 @@
+name: Sync upstream
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync fork
+        uses: actions/checkout@v4
+        with:
+          repository: Praannjaal/CropCompass
+          ref: main
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Push upstream changes to fork
+          run: |
+            git push https://x-access-token:${GITHUB_TOKEN}@github.com/Abhi-1302/YOUR_REPO.git HEAD:main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
