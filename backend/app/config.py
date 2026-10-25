@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_username: str | None = None
     smtp_password: str | None = None
-    smtp_from: str = "AuraFarming <no-reply@localhost>"
+    smtp_from: str = "CropCompass <no-reply@localhost>"
     smtp_starttls: bool = True
 
     @property

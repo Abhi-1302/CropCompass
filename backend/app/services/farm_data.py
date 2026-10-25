@@ -18,7 +18,7 @@ from engine.ingest.soilgrids import SoilGridsError, fetch_profile
 from engine.soil.ptf import summarize_profile
 
 log = logging.getLogger(__name__)
-USER_AGENT = "AuraFarming/0.1 (NASA Space Apps 2026)"
+USER_AGENT = "CropCompass/0.1 (NASA Space Apps 2026)"
 ClientFactory = Callable[[Settings], httpx.Client]
 _running: set[uuid.UUID] = set()
 _guard = threading.Lock()

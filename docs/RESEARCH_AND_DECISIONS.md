@@ -1,4 +1,4 @@
-# AuraFarming: Research Notes and Design Decision Record
+# CropCompass: Research Notes and Design Decision Record
 
 As-built snapshot: 23 October 2026. Purpose: support a research-paper methods section and preserve the major
 product, scientific and implementation decisions made during development.
@@ -12,12 +12,12 @@ script, use [PRESENTATION_GUIDE.md](PRESENTATION_GUIDE.md).
 
 ### Suggested Working Title
 
-**AuraFarming: A Provenance-Aware Crop-Rotation Decision-Support Prototype Combining Earth Data, Farmer History
+**CropCompass: A Provenance-Aware Crop-Rotation Decision-Support Prototype Combining Earth Data, Farmer History
 and Multi-Criteria Simulation**
 
 ### Accurate System Description
 
-AuraFarming is a web-based, deterministic decision-support prototype integrating gridded weather, mapped soil,
+CropCompass is a web-based, deterministic decision-support prototype integrating gridded weather, mapped soil,
 satellite vegetation history and farmer-provided management records. A Python engine simulates crop-water and
 yield responses across historical weather windows, applies crop-succession rules, estimates indicative economic
 and soil-carbon outcomes, and ranks plans using farmer-defined priorities. Data-quality metadata and scenario

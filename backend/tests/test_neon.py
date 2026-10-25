@@ -27,9 +27,9 @@ from tests.test_history_api import SOYBEAN
 
 @pytest.fixture
 def neon_engine():
-    env_file = os.environ.get("AURAFARMING_NEON_TEST_ENV")
+    env_file = os.environ.get("CROPCOMPASS_NEON_TEST_ENV")
     if not env_file:
-        pytest.skip("Set AURAFARMING_NEON_TEST_ENV to a disposable Neon branch env file")
+        pytest.skip("Set CROPCOMPASS_NEON_TEST_ENV to a disposable Neon branch env file")
     assert Path(env_file).is_file(), "Test environment file must exist"
     settings = Settings(_env_file=env_file)
     target = make_url(settings.database_url)
