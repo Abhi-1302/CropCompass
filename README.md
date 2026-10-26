@@ -1,4 +1,4 @@
-# AuraFarming
+# CropCompass
 
 Crop-rotation decision support built on NASA Earth data (NASA Space Apps 2026, *Field Shift*).
 See [docs/PLAN.md](docs/PLAN.md) for the product and technical plan.
@@ -35,12 +35,14 @@ Set these values in your ignored `backend/.env` or your backend host's secret en
 ```dotenv
 MAILJET_API_KEY=<your Mailjet API key>
 MAILJET_API_SECRET=<your Mailjet secret key>
-MAILJET_FROM="AuraFarming <your-verified-sender@example.com>"
+MAILJET_FROM="CropCompass <your-verified-sender@example.com>"
 PUBLIC_APP_URL=https://your-frontend-domain
 ```
 
 Verify the sender address or domain in Mailjet first; configure SPF/DKIM for a domain you own. Keep `PUBLIC_APP_URL`
 pointing to your local frontend during development. Restart FastAPI after changing environment settings.
+Set the display name in deployed `MAILJET_FROM` or `SMTP_FROM` values to `CropCompass`, retaining the verified
+sender address. Environment overrides take precedence over the code's default sender name.
 The default transport is `in.mailjet.com:2525` with mandatory STARTTLS and certificate verification before login.
 Optional `MAILJET_HOST` and `MAILJET_PORT` override the endpoint to match your Mailjet account's SMTP settings.
 Never put these credentials in frontend `VITE_*` variables or commit them.
@@ -89,9 +91,9 @@ branch's credentials into a separate ignored `.env.neon-test` file, leaving the 
 From the repository root:
 
 ```powershell
-$env:AURAFARMING_NEON_TEST_ENV = (Resolve-Path .env.neon-test).Path
+$env:CROPCOMPASS_NEON_TEST_ENV = (Resolve-Path .env.neon-test).Path
 .\backend\.venv\Scripts\python.exe -m pytest -q backend/tests/test_neon.py
-Remove-Item Env:AURAFARMING_NEON_TEST_ENV
+Remove-Item Env:CROPCOMPASS_NEON_TEST_ENV
 ```
 
 Normal regression tests remain isolated on SQLite and skip this opt-in test. Never point fixture-based tests at

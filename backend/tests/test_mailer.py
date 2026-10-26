@@ -18,7 +18,7 @@ def smtp_transport(monkeypatch):
 def mailjet_settings(settings):
     settings.mailjet_api_key = "test-mailjet-key"
     settings.mailjet_api_secret = "test-mailjet-secret"
-    settings.mailjet_from = "AuraFarming <sender@example.com>"
+    settings.mailjet_from = "CropCompass <sender@example.com>"
     settings.mailjet_host = "in.mailjet.com"
     settings.mailjet_port = 2525
     return settings
@@ -40,7 +40,7 @@ def test_mailjet_uses_tls_before_login_and_sends_message(mailjet_settings, smtp_
     assert context.check_hostname and context.verify_mode == ssl.CERT_REQUIRED
     smtp.login.assert_called_once_with("test-mailjet-key", "test-mailjet-secret")
     message = smtp.send_message.call_args.args[0]
-    assert str(message["From"]) == "AuraFarming <sender@example.com>"
+    assert str(message["From"]) == "CropCompass <sender@example.com>"
     assert str(message["To"]) == "recipient@example.com"
     assert str(message["Subject"]) == "Reset your password"
     assert message.get_content().strip() == "Your reset link"
@@ -75,13 +75,13 @@ def test_existing_smtp_configuration_still_works(settings, smtp_transport, start
     settings.smtp_port = 587
     settings.smtp_username = "smtp-user"
     settings.smtp_password = "smtp-password"
-    settings.smtp_from = "AuraFarming <smtp@example.com>"
+    settings.smtp_from = "CropCompass <smtp@example.com>"
     settings.smtp_starttls = starttls
     send_email(settings, "recipient@example.com", "Reset", "Your reset link")
     factory.assert_called_once_with("smtp.example.com", 587, timeout=20)
     assert smtp.starttls.call_count == int(starttls)
     smtp.login.assert_called_once_with("smtp-user", "smtp-password")
-    assert str(smtp.send_message.call_args.args[0]["From"]) == "AuraFarming <smtp@example.com>"
+    assert str(smtp.send_message.call_args.args[0]["From"]) == "CropCompass <smtp@example.com>"
 
 
 @pytest.mark.parametrize("stage", ["connect", "starttls", "login", "send_message"])

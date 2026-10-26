@@ -3,9 +3,9 @@ requires = ["setuptools>=69"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "aurafarming-backend"
+name = "cropcompass-backend"
 version = "0.1.0"
-description = "AuraFarming API and science engine"
+description = "CropCompass API and science engine"
 requires-python = ">=3.12"
 dependencies = [
   "fastapi>=0.115",

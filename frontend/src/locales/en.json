@@ -25,7 +25,7 @@
     "exportStarted": "Export requested. Check your browser downloads."
   },
   "app": {
-    "name": "AuraFarming",
+    "name": "CropCompass",
     "tagline": "Plan resilient crop rotations with 45 years of NASA Earth data.",
     "footer": "Weather: NASA POWER · Soil: ISRIC SoilGrids · Advice is guidance, not a guarantee."
   },
@@ -34,7 +34,7 @@
     "loading": "Loading…",
     "retry": "Try again",
     "back": "Back to my farms",
-    "serverDown": "We can't reach the AuraFarming server right now.",
+    "serverDown": "We can't reach the CropCompass server right now.",
     "notFound": "Page not found",
     "goHome": "Go to my farms"
   },
@@ -610,6 +610,6 @@
     "kind": { "next_crop": "Next crop", "rotation": "Rotation" },
     "titleNext": "{{crop}} for {{season}} {{year}}",
     "titleRotation": "Rotation from kharif {{year}}",
-    "disclaimer": "Simulated outcomes from NASA weather, soil maps and indicative crop, price and cost data. Use them to compare options, not as a guarantee. AuraFarming gives no pesticide advice."
+    "disclaimer": "Simulated outcomes from NASA weather, soil maps and indicative crop, price and cost data. Use them to compare options, not as a guarantee. CropCompass gives no pesticide advice."
   }
 }

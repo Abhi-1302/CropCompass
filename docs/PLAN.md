@@ -1,4 +1,4 @@
-# AuraFarming — Product & Technical Plan (v1)
+# CropCompass — Product & Technical Plan (v1)
 
 > NASA Space Apps Challenge 2026 · **Field Shift: Adapting Farms with NASA Data**
 > Original agreed plan: Oct 15 2026, with subsequent implementation notes. Some sections retain proposals.
@@ -671,7 +671,7 @@ one pixel's greenness also reflects irrigation and land use, so it supports the 
 ## 15. Repository layout
 
 ```
-AuraFarming/
+CropCompass/
 ├─ backend/
 │  ├─ app/              # FastAPI: main, routers, auth, db, schemas
 │  ├─ engine/
