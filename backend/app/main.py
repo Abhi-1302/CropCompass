@@ -21,7 +21,7 @@ def create_app(
 ) -> FastAPI:
     settings = settings or get_settings()
     app = FastAPI(
-        title="AuraFarming API",
+        title="CropCompass API",
         version="0.1.0",
         docs_url="/api/docs" if settings.expose_docs else None,
         openapi_url="/api/openapi.json" if settings.expose_docs else None,
