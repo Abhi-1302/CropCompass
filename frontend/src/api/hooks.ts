@@ -66,7 +66,7 @@ export function useLogout() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: () => api<void>("/auth/logout", { method: "POST" }),
-    onSettled: () => client.clear(),
+    onSettled: () => { clearSproutPreferences(); client.clear(); },
   });
 }
 
@@ -94,8 +94,16 @@ export function useDeleteAccount() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (password: string) => api<void>("/account/delete", { method: "POST", body: { password } }),
-    onSuccess: () => client.clear(),
+    onSuccess: () => { clearSproutPreferences(); client.clear(); },
   });
+}
+
+function clearSproutPreferences() {
+  try {
+    for (const key of Object.keys(sessionStorage)) {
+      if (key.startsWith("sprout:") || key.startsWith("sprout-consent:")) sessionStorage.removeItem(key);
+    }
+  } catch {}
 }
 
 /** Download everything the account holds as a JSON file. */

@@ -10,7 +10,7 @@ from app.config import Settings, get_settings
 from app.db import make_engine, make_session_factory
 from app.deps import UNSAFE_METHODS
 from app.ratelimit import RateLimiter
-from app.routers import account, auth, crops, farms, planner, seasons, vegetation
+from app.routers import account, auth, chat, crops, farms, planner, seasons, vegetation
 from app.services.farm_data import ClientFactory, default_http_client
 
 
@@ -40,6 +40,7 @@ def create_app(
         "password_checks": RateLimiter(5, 900),
         "data_build": RateLimiter(20, 3600),
         "advice": RateLimiter(60, 3600),
+        "sprout": RateLimiter(6, 60),
     }
 
     @app.middleware("http")
@@ -65,6 +66,7 @@ def create_app(
     api.include_router(vegetation.router)
     api.include_router(crops.router)
     api.include_router(planner.router)
+    api.include_router(chat.router)
 
     @api.get("/health", tags=["meta"])
     def health() -> dict:
