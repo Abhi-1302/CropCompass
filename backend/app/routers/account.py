@@ -62,7 +62,7 @@ def export_account(user: CurrentUser, db: DbSession) -> Response:
     now = datetime.now(UTC)
     farms = db.scalars(select(Farm).where(Farm.user_id == user.id).order_by(Farm.created_at))
     data = {
-        "format": "aurafarming-export",
+        "format": "cropcompass-export",
         "version": 1,
         "exported_at": now.isoformat(),
         "account": {
@@ -73,7 +73,7 @@ def export_account(user: CurrentUser, db: DbSession) -> Response:
         },
         "farms": [_farm_export(db, farm) for farm in farms],
     }
-    filename = f"aurafarming-export-{now.date().isoformat()}.json"
+    filename = f"cropcompass-export-{now.date().isoformat()}.json"
     return Response(
         json.dumps(data, ensure_ascii=False, indent=2),
         media_type="application/json",

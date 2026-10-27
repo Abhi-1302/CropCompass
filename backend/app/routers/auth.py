@@ -29,10 +29,10 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 TOO_MANY = "Too many attempts. Please wait a few minutes and try again."
 RESET_SENT = "Request accepted. If this account exists, a reset email will be attempted."
 RESET_INVALID = "This reset link is invalid or has expired. Please ask for a new one."
-RESET_SUBJECT = "Reset your AuraFarming password"
+RESET_SUBJECT = "Reset your CropCompass password"
 RESET_BODY = """Hello {name},
 
-Someone (hopefully you) asked to reset the password of your AuraFarming account.
+Someone (hopefully you) asked to reset the password of your CropCompass account.
 Open this link within {minutes} minutes to choose a new password:
 
 {link}
