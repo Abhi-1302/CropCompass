@@ -14,6 +14,7 @@ from app.models import Farm, PasswordReset, Plan, SeasonRecord, SoilProfile, Use
 from app.routers.auth import TOO_MANY, clear_session_cookies, reject_email_as_password
 from app.schemas import AccountDeleteIn, FarmOut, PasswordChangeIn, PlanOut, SeasonOut
 from app.security import hash_password, verify_password
+from app.services.sprout import export_chats
 
 router = APIRouter(prefix="/account", tags=["account"])
 
@@ -72,6 +73,7 @@ def export_account(user: CurrentUser, db: DbSession) -> Response:
             "last_login_at": user.last_login_at.isoformat() if user.last_login_at else None,
         },
         "farms": [_farm_export(db, farm) for farm in farms],
+        "conversations": export_chats(db, user),
     }
     filename = f"cropcompass-export-{now.date().isoformat()}.json"
     return Response(

@@ -8,6 +8,7 @@ import { mm, money, percent, signed } from "../../lib/format";
 import type { T } from "../crops/text";
 import { StressCard } from "./NextCropView";
 import { ConfidenceNote, PillarBars, PricesCard, ReasonList, rotationLabel, RotationTimeline } from "./parts";
+import { AskSprout } from "../sprout/Sprout";
 
 const MAX_COMPARE = 3;
 
@@ -175,6 +176,9 @@ export function RotationsView({ farm, irrigation, weights }: { farm: Farm; irrig
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-3">
+        {data && <AskSprout farmId={farm.id} text={t("sprout.rotationQuestion")} intent="rotations"
+          scenario={{ irrigation, weights, residue }} selectedOptionIds={selected}
+          displayedWeatherRevision={data.weather_context.revision} />}
         <span className="text-sm font-medium text-stone-800">{t("plan.residue")}</span>
         <div role="radiogroup" aria-label={t("plan.residue")} className="inline-flex rounded-xl bg-stone-100 p-1">
           {(["incorporated", "removed"] as const).map((key) => (
