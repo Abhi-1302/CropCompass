@@ -32,7 +32,7 @@ def encode(frame: pd.DataFrame) -> bytes:
 
 def decode(blob: bytes) -> pd.DataFrame:
     if blob[:4] != MAGIC:
-        raise ValueError("Not an AuraFarming series blob")
+        raise ValueError("Not a CropCompass series blob")
     (size,) = struct.unpack("<I", blob[4:8])
     header = json.loads(blob[8 : 8 + size])
     raw = zstandard.ZstdDecompressor().decompress(blob[8 + size :])

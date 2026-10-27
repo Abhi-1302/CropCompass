@@ -68,6 +68,8 @@ def test_password_reset_flow(client, monkeypatch):
     assert unknown.json() == known.json()  # never reveals whether an account exists
     assert known.json()["delivery"] == "development"
     assert [mail["to"] for mail in sent] == ["asha@example.com"]
+    assert sent[0]["subject"] == "Reset your CropCompass password"
+    assert "your CropCompass account" in sent[0]["body"]
     token = re.search(r"/reset-password#token=(\S+)", sent[0]["body"]).group(1)
 
     reset = "/api/v1/auth/password/reset"
@@ -124,7 +126,7 @@ def test_unconfigured_deployed_reset_reports_service_state_for_every_email(clien
         {
             "mailjet_api_key": "test-key",
             "mailjet_api_secret": "test-secret",
-            "mailjet_from": "AuraFarming <sender@example.com>",
+            "mailjet_from": "CropCompass <sender@example.com>",
         },
     ],
 )
@@ -151,7 +153,7 @@ def test_incomplete_mailjet_does_not_issue_reset_tokens(client, monkeypatch, ses
     settings.cookie_secure = cookie_secure
     settings.mailjet_api_key = "test-key"
     settings.mailjet_api_secret = "test-secret"
-    settings.mailjet_from = "AuraFarming <sender@example.com>"
+    settings.mailjet_from = "CropCompass <sender@example.com>"
     settings.smtp_host = "smtp.example.com"
     setattr(settings, missing, None)
     url = "/api/v1/auth/password/forgot"
@@ -173,8 +175,12 @@ def test_export_contains_the_users_data_but_no_secrets(client):
 
     response = client.get("/api/v1/account/export")
     assert response.status_code == 200
-    assert "attachment" in response.headers["content-disposition"]
+    assert re.fullmatch(
+        r'attachment; filename="cropcompass-export-\d{4}-\d{2}-\d{2}\.json"',
+        response.headers["content-disposition"],
+    )
     data = response.json()
+    assert data["format"] == "cropcompass-export"
     assert data["account"]["email"] == "asha@example.com"
     assert data["farms"][0]["name"] == "Plot" and data["farms"][0]["soil_map"]["source"] == "soilgrids"
     assert [s["crops"] for s in data["farms"][0]["seasons"]] == [["soybean"]]
