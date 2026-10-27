@@ -8,10 +8,12 @@ import { fullDate, inTenYears, mm, monthDay, money, percent } from "../../lib/fo
 import { cropName, familyName, yieldText } from "../crops/text";
 import { SoilNowNote } from "../climate/SoilNowNote";
 import { ConfidenceNote, PillarBars, PricesCard, ReasonList, StressTable } from "./parts";
+import { AskSprout } from "../sprout/Sprout";
 
 const SEASONS: CropSeason[] = ["kharif", "rabi", "summer"];
 
-function OptionCard({ option, advice, catalog, onSave, saving, saved }: {
+function OptionCard({ option, advice, catalog, onSave, saving, saved, farmId }: {
+  farmId: string;
   option: NextCropOption;
   advice: NextCropAdvice;
   catalog?: Catalog;
@@ -84,7 +86,10 @@ function OptionCard({ option, advice, catalog, onSave, saving, saved }: {
       <div className="mt-4">
         <ReasonList reasons={option.reasons} rules={option.rules} catalog={catalog} />
       </div>
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 flex flex-wrap items-center gap-3">
+        <AskSprout farmId={farmId} text={t("sprout.explainOption", { crop: cropName(catalog, option.id) })}
+          intent="next_crop" scenario={{ season: advice.season, irrigation: advice.irrigation, weights: advice.weights }}
+          selectedOptionIds={[option.id]} displayedWeatherRevision={advice.weather_context.revision} />
         <Button size="sm" variant="secondary" busy={saving} disabled={saved} onClick={onSave}>
           {saved ? t("plan.savedOk") : t("plan.save")}
         </Button>
@@ -154,6 +159,7 @@ export function NextCropView({ farm, irrigation, weights, onOpenHistory }: {
           {data.options.map((option) => (
             <OptionCard
               key={option.id}
+              farmId={farm.id}
               option={option}
               advice={data}
               catalog={catalog}

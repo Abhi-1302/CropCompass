@@ -5,6 +5,7 @@ See [docs/PLAN.md](docs/PLAN.md) for the product and technical plan.
 
 - [Presentation and demo guide](docs/PRESENTATION_GUIDE.md): what is ingested, when it runs, readiness states, slide outline and demo script.
 - [Research and decision record](docs/RESEARCH_AND_DECISIONS.md): methods, assumptions, 38 design decisions, code references and an evaluation plan.
+- [Sprout setup and operations](docs/SPROUT.md): the farm-aware assistant, Groq configuration, migration, privacy, limits and isolated preview.
 
 ## Run locally
 

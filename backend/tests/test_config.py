@@ -77,3 +77,17 @@ def test_mailjet_environment_settings(monkeypatch: pytest.MonkeyPatch):
     assert settings.email_delivery == "email"
     assert settings.mailjet_api_key not in repr(settings)
     assert settings.mailjet_api_secret not in repr(settings)
+
+
+@pytest.mark.parametrize("key", [None, "", "  ", "replace_me", "YOUR_GROQ_API_KEY"])
+def test_sprout_requires_a_real_key(key):
+    settings = Settings(_env_file=None, sprout_enabled=True, groq_api_key=key)
+    assert not settings.sprout_ready
+
+
+def test_sprout_is_explicitly_enabled_and_key_is_private():
+    settings = Settings(_env_file=None, sprout_enabled=False, groq_api_key="private-test-key")
+    assert not settings.sprout_ready
+    settings.sprout_enabled = True
+    assert settings.sprout_ready
+    assert "private-test-key" not in repr(settings)
