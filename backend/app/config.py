@@ -41,6 +41,25 @@ class Settings(BaseSettings):
     smtp_from: str = "CropCompass <no-reply@localhost>"
     smtp_starttls: bool = True
 
+    sprout_enabled: bool = False
+    groq_api_key: str | None = Field(default=None, repr=False)
+    sprout_model: str = "openai/gpt-oss-120b"
+    sprout_timeout_s: int = Field(default=60, ge=5, le=120)
+    sprout_max_output_tokens: int = Field(default=1500, ge=100, le=1500)
+    sprout_context_chars: int = Field(default=14000, ge=4000, le=24000)
+    sprout_daily_requests: int = Field(default=20, ge=1, le=200)
+    sprout_global_daily_requests: int = Field(default=100, ge=1, le=10000)
+    sprout_daily_tokens: int = Field(default=40000, ge=5000, le=1000000)
+    sprout_global_daily_tokens: int = Field(default=180000, ge=5000, le=10000000)
+    sprout_max_threads: int = Field(default=30, ge=1, le=100)
+    sprout_max_turns: int = Field(default=100, ge=1, le=500)
+    sprout_max_concurrent: int = Field(default=2, ge=1, le=5)
+
+    @property
+    def sprout_ready(self) -> bool:
+        key = (self.groq_api_key or "").strip()
+        return self.sprout_enabled and bool(key) and key.lower() not in {"replace_me", "your_groq_api_key"}
+
     @property
     def mailjet_requested(self) -> bool:
         return bool(self.mailjet_api_key or self.mailjet_api_secret or self.mailjet_from)

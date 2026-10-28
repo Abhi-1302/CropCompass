@@ -1,0 +1,71 @@
+{
+  "version": "2026-10-27",
+  "sections": [
+    {
+      "id": "scope",
+      "title": "What CropCompass and Sprout can do",
+      "tags": ["sprout", "platform", "help", "cropcompass", "features", "मदद", "సహాయం"],
+      "text": "CropCompass compares next-crop choices and two-year rotations using historical NASA weather, mapped soil, crop traits, farmer crop history and priorities. Sprout explains this information and can explore hypothetical scenarios, but does not edit farm records, save plans or make guaranteed predictions. Crop recommendations currently require the India crop pack. Farm, soil and platform questions remain available when crop advice is unavailable. The crop pack and economics require field validation. No live weather forecast, market-price feed, pest diagnosis or pesticide advice is provided."
+    },
+    {
+      "id": "confidence",
+      "title": "Low confidence and weather provenance",
+      "tags": ["confidence", "quality", "proxy", "warning", "verified", "विश्वास", "నమ్మకం"],
+      "text": "Each NASA POWER calendar year is checked for units, coverage, plausible values and agreement with monthly totals. Failed data stays quarantined. When at least 30 consecutive checked years through the previous December exist, supported farms can receive Low confidence advice. Its recent-state estimate substitutes matching days from a previous year; these proxy days are excluded from historical outcome trials. This is a labelled scenario, not observed current weather or a forecast. Climate and Crop fit remain unavailable until their required verified data exists. The information icon explains the reason, reference year and dates. Never interpret Low confidence as a measured probability that a recommendation is correct."
+    },
+    {
+      "id": "soil",
+      "title": "Soil maps and farmer corrections",
+      "tags": ["soil", "carbon", "ph", "texture", "depth", "मिट्टी", "मृदा", "నేల", "మట్టి"],
+      "text": "The Soil tab displays SoilGrids estimates and the effective soil used by the models. Edit soil accepts soil type, root depth, sand/silt/clay percentages, available water capacity, organic carbon and pH. Farmer corrections override corresponding map estimates. Defaults are explicitly labelled when values are absent. Soil maps are estimates, not laboratory measurements. Use soil map again removes overrides. Full N/P/K/EC soil-card editing and fertilizer-application scheduling are not implemented."
+    },
+    {
+      "id": "next-crop",
+      "title": "Choosing the next crop",
+      "tags": ["next", "crop", "sow", "plant", "rabi", "kharif", "summer", "फसल", "बुवाई", "పంట", "విత్తు"],
+      "text": "Open the farm's Plan tab and Next crop view. Choose the season and irrigation scenario, then compare the returned crop options. Rankings consider income, water, soil and risk priorities as well as previous-crop constraints. Yield ranges and failure counts come from historical simulations, not future weather predictions. Recommendations can be unavailable for an unsupported region, insufficient checked weather or an unsuitable planting window. A higher relative score does not guarantee a safe or profitable crop. Sprout must use actual planner output, not invent crops or yields."
+    },
+    {
+      "id": "rotations",
+      "title": "Comparing rotations",
+      "tags": ["rotation", "sequence", "residue", "two-year", "चक्र", "అవశేష", "మార్పిడి"],
+      "text": "The Rotations view compares two-year sequences using historical weather windows. It reports indicative income, irrigation demand, failure risk and modelled soil-carbon change. Compare options using the same scenario and priorities. Residue left in the field versus removed changes soil-carbon outcomes. The current-practice comparison is derived from the crop journal when possible, otherwise from a labelled default. Sprout can explain ranked rotation outputs; it does not offer a rotation stress-test reliability score."
+    },
+    {
+      "id": "scenarios",
+      "title": "Temporary scenarios and priorities",
+      "tags": ["irrigation", "rainfed", "water", "protective", "priorities", "weights", "what if", "सिंचाई", "पानी", "నీరు", "సాగు"],
+      "text": "Rainfed, protective irrigation and full irrigation are alternative modelling scenarios. Priority sliders weight income, water, soil and risk from 0 to 5; these are preferences, not measurements. Save priorities stores slider values; changing the water scenario alone does not save it to the farm. A Sprout what-if question changes only the conversation's hypothetical scenario. Reset scenario returns to the farm's saved settings. Temporary values in the Plan panel are shared with Sprout only through Ask Sprout or explicit user selections."
+    },
+    {
+      "id": "history",
+      "title": "Crop history and satellite observations",
+      "tags": ["history", "journal", "previous", "ndvi", "satellite", "season", "इतिहास", "उपग्रह", "చరిత్ర", "ఉపగ్రహ"],
+      "text": "Crop history stores crops, dates, status, residue, optional yield, irrigation count and notes. ORNL MODIS NDVI is a 16-day vegetation-greenness series; it can suggest growing-season dates but cannot identify which crop was grown. Confirm the crop and dates yourself before logging a suggestion. The planner uses recorded history to estimate previous-crop constraints and current soil-water state. Missing history may use labelled assumptions. EVI, automatic crop identification and detailed season report cards are not implemented."
+    },
+    {
+      "id": "saved-plans",
+      "title": "Saving and revisiting plans",
+      "tags": ["save", "saved", "plan", "persist", "योजना", "सहेज", "ప్రణాళిక", "సేవ్"],
+      "text": "Save a selected crop or rotation in the Plan view, then revisit it under Saved plans. Saved plans retain input settings, engine version and weather provenance from the time of saving. Changed data can make a saved plan outdated; inspect its warnings before comparing it with current advice. Sprout does not save or delete plans. Use the existing plan controls for those actions."
+    },
+    {
+      "id": "economics",
+      "title": "Indicative economics, not live prices",
+      "tags": ["income", "price", "cost", "profit", "rupees", "yield", "कीमत", "लागत", "आय", "ధర", "ఆదాయం"],
+      "text": "India-pack prices, costs and crop parameters are indicative and not independently field-validated. The Prices and costs used section shows assumptions. There is no live market feed and no farmer price override yet. Preserve the units in planner results: next-crop income is per hectare per season, not whole-farm income. Rotation income and irrigation are annualized over the two-year sequence, not two-year totals. Sprout must not turn historical ranges into promised future earnings."
+    },
+    {
+      "id": "data",
+      "title": "Data readiness and refresh",
+      "tags": ["weather", "nasa", "download", "refresh", "pending", "source", "मौसम", "వాతావరణం"],
+      "text": "Adding a farm starts environmental ingestion. Nearby farms share a NASA POWER grid-cell cache. Soil and vegetation use the farm coordinates, with their own readiness states. Signing up alone downloads no weather or satellite data. Large downloads can take time and may pause when a free hosting instance restarts; verified annual checkpoints support resuming. Refresh uses the application's existing controls and limits. Sprout reads readiness and existing data rather than starting unrestricted external downloads."
+    },
+    {
+      "id": "privacy",
+      "title": "Sprout conversations and privacy",
+      "tags": ["privacy", "delete", "export", "chat", "conversation", "session", "गोपनीयता", "గోప్యత"],
+      "text": "Each conversation belongs to the signed-in user and is either platform help or bound to one farm. Sprout sends your message, limited conversation context and selected farm summaries to the configured model provider. Avoid including personal or confidential details. It does not send account credentials, email addresses from account records, raw weather archives, exact farm coordinates or journal free-text notes as farm context. History persists across reloads. New chat starts separate context; closing the panel does not delete history. Delete a conversation from its history controls. Account export includes chats and account deletion removes them."
+    }
+  ]
+}

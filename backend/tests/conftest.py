@@ -73,6 +73,8 @@ def settings() -> Settings:
         mailjet_api_key=None,
         mailjet_api_secret=None,
         mailjet_from=None,
+        sprout_enabled=False,
+        groq_api_key=None,
     )
 
 
