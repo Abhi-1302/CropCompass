@@ -17,6 +17,7 @@ dependencies = [
   "psycopg[binary]>=3.2",
   "argon2-cffi>=23.1",
   "httpx>=0.27",
+  "openai>=2.0,<3",
   "numpy>=2.0",
   "pandas>=2.2",
   "zstandard>=0.23",
@@ -31,6 +32,7 @@ include = ["app*", "engine*"]
 
 [tool.setuptools.package-data]
 engine = ["crops/*.yaml"]
+app = ["knowledge/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

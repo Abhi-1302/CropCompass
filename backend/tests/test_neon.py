@@ -43,7 +43,7 @@ def neon_engine():
     try:
         with engine.connect() as connection:
             assert connection.connection.driver_connection.pgconn.ssl_in_use
-            assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0005"
+            assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
         yield engine
     finally:
         engine.dispose()

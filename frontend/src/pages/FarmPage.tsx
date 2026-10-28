@@ -7,6 +7,7 @@ import { Alert, Button, Card, cx, PageSpinner, Spinner } from "../components/ui"
 import { SoilPanel } from "../features/soil/SoilPanel";
 import { WeatherConfidence } from "../features/plan/WeatherConfidence";
 import { StatusBadge } from "./FarmsPage";
+import { AskSprout } from "../features/sprout/Sprout";
 
 const ClimatePanel = lazy(() =>
   import("../features/climate/ClimatePanel").then((module) => ({ default: module.ClimatePanel })),
@@ -103,7 +104,8 @@ export function FarmPage() {
             {t(`farms.irrigation.${data.irrigation}`)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          <AskSprout farmId={data.id} text={t("sprout.farmQuestion")} intent="farm" />
           <Button
             variant="secondary"
             size="sm"
