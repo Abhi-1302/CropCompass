@@ -46,7 +46,7 @@ export function FarmsPage() {
         </div>
         <Link
           to="/farms/new"
-          className="inline-flex items-center rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-emerald-800"
+          className="inline-flex items-center rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-strong"
         >
           {t("farms.add")}
         </Link>
@@ -60,7 +60,7 @@ export function FarmsPage() {
           <p className="mx-auto mt-2 max-w-sm text-sm text-stone-500">{t("farms.emptyText")}</p>
           <Link
             to="/farms/new"
-            className="mt-6 inline-flex rounded-lg bg-emerald-700 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-800"
+            className="mt-6 inline-flex rounded-lg bg-brand px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-strong"
           >
             {t("farms.emptyCta")}
           </Link>

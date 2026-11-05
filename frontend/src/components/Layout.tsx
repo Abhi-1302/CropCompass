@@ -3,6 +3,7 @@ import { Link, Navigate, NavLink, Outlet, useLocation, useNavigate } from "react
 import { ApiError } from "../api/client";
 import { useLogout, useMe } from "../api/hooks";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
 import { Alert, Button, PageSpinner } from "./ui";
 import { SproutProvider } from "../features/sprout/Sprout";
@@ -40,7 +41,7 @@ export function Layout() {
 
   return (
     <SproutProvider><div className="flex min-h-dvh flex-col">
-      <header className="sticky top-0 z-[1000] border-b border-stone-200 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-[1000] border-b border-stone-200 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <Link to="/" aria-label={t("nav.farms")}>
             <Logo />
@@ -53,6 +54,7 @@ export function Layout() {
               {t("nav.account")}
             </NavLink>
             <LanguageSwitcher className="max-w-[6.5rem]" />
+            <ThemeToggle />
             <Button
               variant="ghost"
               size="sm"

@@ -154,7 +154,7 @@ export function NewFarmPage() {
                     onClick={() => { if (key !== mode) drawCorners([]); setMode(key); }}
                     className={cx(
                       "rounded-lg px-3 py-1.5 text-sm font-medium transition",
-                      mode === key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+                      mode === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
                     )}
                   >
                     {t(key === "pin" ? "newFarm.modePin" : "newFarm.modeBoundary")}

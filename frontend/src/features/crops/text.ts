@@ -1,9 +1,9 @@
-import type { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import type { Catalog, RuleEffect } from "../../api/types";
 import i18n from "../../i18n";
 import { fullDate } from "../../lib/format";
 
-export type T = ReturnType<typeof useTranslation>["t"];
+export type T = TFunction;
 
 type CatalogKind = "crop" | "family" | "group" | "problem" | "residue" | "hostGroup" | "product";
 

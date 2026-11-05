@@ -22,7 +22,7 @@ export function Dialog({ open, title, closeLabel, onClose, children }: Props) {
         event.preventDefault();
         onClose();
       }}
-      className="m-auto w-[calc(100%-2rem)] max-w-2xl rounded-2xl bg-white p-0 text-stone-900 shadow-2xl backdrop:bg-stone-900/40"
+      className="m-auto w-[calc(100%-2rem)] max-w-2xl rounded-2xl bg-surface p-0 text-stone-900 shadow-2xl backdrop:bg-stone-900/40"
     >
       <div className="flex items-center justify-between border-b border-stone-200 px-6 py-4">
         <h2 id="dialog-title" className="text-lg font-semibold">

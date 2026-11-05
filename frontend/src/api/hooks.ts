@@ -290,8 +290,9 @@ export function useDeleteSeason(farmId: string) {
   });
 }
 
-export function useCropFit(id: string, season: CropSeason | undefined, irrigation: Irrigation) {
+export function useCropFit(id: string, season: CropSeason | undefined, irrigation: Irrigation, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: keys.cropFit(id, season, irrigation),
     queryFn: () => {
       const params = new URLSearchParams({ irrigation });

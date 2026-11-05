@@ -179,12 +179,15 @@ def aridity_class(index: float) -> str:
     return "humid"
 
 
-def monthly_climatology(rain, et0, tmax, tmin, years: list[int]) -> list[dict]:
+def monthly_climatology(rain, et0, tmax, tmin, years: list[int], wind=None) -> list[dict]:
+    """Month-by-month normals; `wind` (2 m wind speed, m/s) is optional and averaged like temperature."""
     frame = pd.DataFrame({"rain": rain, "et0": et0, "tmax": tmax, "tmin": tmin})
+    if wind is not None:
+        frame["wind"] = wind
     frame = frame[frame.index.year.isin(years)]
     by_year_month = [frame.index.year, frame.index.month]
     totals = frame[["rain", "et0"]].groupby(by_year_month).sum().groupby(level=1).mean()
-    temps = frame[["tmax", "tmin"]].groupby(frame.index.month).mean()
+    temps = frame[["tmax", "tmin"] + (["wind"] if wind is not None else [])].groupby(frame.index.month).mean()
     hot = (frame["tmax"] >= 35).groupby(by_year_month).sum().groupby(level=1).mean()
     frost = (frame["tmin"] <= 0).groupby(by_year_month).sum().groupby(level=1).mean()
     return [
@@ -196,6 +199,7 @@ def monthly_climatology(rain, et0, tmax, tmin, years: list[int]) -> list[dict]:
             "tmin_c": round(float(temps.loc[m, "tmin"]), 1),
             "hot_days": round(float(hot.loc[m]), 1),
             "frost_days": round(float(frost.loc[m]), 1),
+            **({"wind_ms": round(float(temps.loc[m, "wind"]), 1)} if wind is not None else {}),
         }
         for m in range(1, 13)
     ]

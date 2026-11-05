@@ -12,10 +12,10 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const BUTTON_VARIANTS = {
-  primary: "bg-emerald-700 text-white hover:bg-emerald-800 shadow-sm",
-  secondary: "bg-white text-stone-800 ring-1 ring-stone-300 hover:bg-stone-50",
+  primary: "bg-brand text-white hover:bg-brand-strong shadow-sm",
+  secondary: "bg-surface text-stone-800 ring-1 ring-stone-300 hover:bg-stone-50",
   ghost: "text-stone-700 hover:bg-stone-100",
-  danger: "bg-white text-red-700 ring-1 ring-red-200 hover:bg-red-50",
+  danger: "bg-surface text-red-700 ring-1 ring-red-200 hover:bg-red-50",
 };
 
 export function Button({ variant = "primary", size = "md", busy, className, children, disabled, ...rest }: ButtonProps) {
@@ -37,7 +37,7 @@ export function Button({ variant = "primary", size = "md", busy, className, chil
 }
 
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cx("rounded-2xl border border-stone-200 bg-white p-5 shadow-sm", className)}>{children}</div>;
+  return <div className={cx("rounded-2xl border border-stone-200 bg-surface p-5 shadow-sm", className)}>{children}</div>;
 }
 
 type FieldProps = { label: string; hint?: string; children: (id: string) => ReactNode };
@@ -56,7 +56,7 @@ export function Field({ label, hint, children }: FieldProps) {
 }
 
 const CONTROL =
-  "block w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm shadow-xs placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none";
+  "block w-full rounded-lg border border-stone-300 bg-surface px-3 py-2.5 text-sm shadow-xs placeholder:text-stone-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-600/20 focus:outline-none";
 
 export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...rest} className={cx(CONTROL, className)} />;

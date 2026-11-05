@@ -59,6 +59,8 @@ export type MonthlyRow = {
   tmin_c: number;
   hot_days: number;
   frost_days: number;
+  /** Mean 2 m wind speed; missing from climate profiles cached before it was added. */
+  wind_ms?: number;
 };
 
 export type Trend = { name: string; slope_per_decade: number; p_value: number; significant: boolean };
@@ -242,6 +244,8 @@ export type Catalog = {
     { ym: number; n_rec: number; price: number; cost: number; product?: string; sowing: Record<string, [string, string]> }
   >;
   economics: { currency: string; n_price_per_kg: number; validated: boolean; price_sources: Record<string, string[]> };
+  /** FAO-56 based rooting depth (m) and flowering heat threshold (°C) per crop. */
+  species?: Record<string, { root_m: number; heat_c: number | null }>;
 };
 
 export type SeasonRecord = {

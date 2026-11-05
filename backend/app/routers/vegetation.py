@@ -9,7 +9,7 @@ from fastapi import APIRouter, BackgroundTasks, Request, status
 from app.deps import CurrentUser, DbSession, check_build_quota, owned_farm
 from app.models import VegetationSeries
 from app.services.vegetation import build_vegetation, is_running, needs_download, vegetation_view
-from engine.crops.catalog import load_catalog
+from engine.crops.catalog import load_catalog, load_species
 
 router = APIRouter(tags=["vegetation"])
 
@@ -42,4 +42,12 @@ def refresh_vegetation(
 
 @router.get("/crops")
 def get_crops(region: str | None = None) -> dict:
-    return load_catalog(region)
+    catalog = load_catalog(region)
+    sheet = load_species()
+    # Rooting depth and heat threshold (FAO-56 based species sheet) for the Field view; the cached catalog is not mutated.
+    roots = {
+        crop["id"]: {"root_m": sheet[crop["id"]]["root_m"], "heat_c": sheet[crop["id"]]["heat_c"]}
+        for crop in catalog["crops"]
+        if crop["id"] in sheet
+    }
+    return {**catalog, "species": roots}

@@ -6,6 +6,7 @@ import { ApiError } from "../api/client";
 import { useLogin, useMe, useRegister } from "../api/hooks";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { Logo } from "../components/Logo";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { Alert, Button, Field, Input } from "../components/ui";
 
 type Mode = "login" | "register";
@@ -29,25 +30,43 @@ export function AuthShell({ title, subtitle, children }: { title: string; subtit
   const { t } = useTranslation();
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      <aside className="hidden flex-col justify-between bg-gradient-to-br from-emerald-900 via-emerald-700 to-sky-800 p-12 text-white lg:flex">
+      {/* Fixed dark panel in both themes: a survey-grid backdrop and the data sources behind the advice. */}
+      <aside
+        className="relative hidden flex-col justify-between overflow-hidden bg-[#0b1110] p-12 text-white lg:flex"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px)",
+          backgroundSize: "56px 56px",
+        }}
+      >
         <Logo light />
         <div>
-          <p className="max-w-md text-3xl leading-tight font-semibold">{t("app.tagline")}</p>
-          <ul className="mt-8 space-y-4 text-emerald-50">
-            {(["pitch1", "pitch2", "pitch3"] as const).map((key) => (
-              <li key={key} className="flex gap-3">
-                <span className="mt-1.5 size-2 shrink-0 rounded-full bg-emerald-300" aria-hidden="true" />
+          <p className="text-xs font-semibold tracking-[0.2em] text-[#d4ad67] uppercase">{t("auth.eyebrow")}</p>
+          <p className="mt-4 max-w-md text-3xl leading-tight font-semibold">{t("app.tagline")}</p>
+          <ul className="mt-8 max-w-md divide-y divide-white/10 border-y border-white/10 text-sm text-white/80">
+            {(["pitch1", "pitch2", "pitch3"] as const).map((key, index) => (
+              <li key={key} className="flex gap-4 py-3">
+                <span className="tabular w-5 shrink-0 font-mono text-xs leading-5 text-white/40">0{index + 1}</span>
                 {t(`auth.${key}`)}
               </li>
             ))}
           </ul>
+          <dl className="mt-8 grid max-w-md grid-cols-3 gap-4 text-xs">
+            {(["power", "modis", "soilgrids"] as const).map((key) => (
+              <div key={key} className="border-l border-[#d4ad67]/50 pl-3">
+                <dt className="font-semibold text-white">{t(`auth.source.${key}`)}</dt>
+                <dd className="mt-0.5 text-white/55">{t(`auth.source.${key}Detail`)}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <p className="text-sm text-emerald-100/80">{t("app.footer")}</p>
+        <p className="text-xs text-white/50">{t("app.footer")}</p>
       </aside>
 
-      <div className="flex flex-col px-4 py-6">
-        <div className="flex justify-end">
+      <div className="flex flex-col bg-stone-50 px-4 py-6">
+        <div className="flex justify-end gap-2">
           <LanguageSwitcher />
+          <ThemeToggle />
         </div>
         <div className="flex flex-1 items-center justify-center py-6">
           <div className="w-full max-w-sm">

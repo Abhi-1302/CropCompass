@@ -23,11 +23,12 @@ const NextCropSummary = lazy(() =>
   import("../features/plan/NextCropSummary").then((module) => ({ default: module.NextCropSummary })),
 );
 const SavedPlans = lazy(() => import("../features/plan/SavedPlans").then((module) => ({ default: module.SavedPlans })));
+const FieldPanel = lazy(() => import("../features/field/FieldPanel").then((module) => ({ default: module.FieldPanel })));
 const FieldMap = lazy(() => import("../features/map/FieldMap").then((module) => ({ default: module.FieldMap })));
 
-type Tab = "climate" | "history" | "crops" | "plan" | "soil";
-const TABS: Tab[] = ["climate", "history", "crops", "plan", "soil"];
-const PACK_TABS: Tab[] = ["crops", "plan"];
+type Tab = "field" | "climate" | "history" | "crops" | "plan" | "soil";
+const TABS: Tab[] = ["field", "climate", "history", "crops", "plan", "soil"];
+const PACK_TABS: Tab[] = ["field", "crops", "plan"];
 
 function Building() {
   const { t } = useTranslation();
@@ -67,7 +68,8 @@ export function FarmPage() {
   const verified = sources.data?.weather.status === "verified";
   const adviceAvailable = sources.data?.advice.available === true;
   const limited = sources.data?.advice.weather_context?.confidence === "low";
-  const tab = TABS.includes(params.get("tab") as Tab) ? params.get("tab") as Tab : limited ? "plan" : "climate";
+  const fallback: Tab = farm.data?.region === "IN" && adviceAvailable ? "field" : limited ? "plan" : "climate";
+  const tab = TABS.includes(params.get("tab") as Tab) ? params.get("tab") as Tab : fallback;
 
   if (farm.isPending) return <PageSpinner />;
   if (farm.isError) {
@@ -169,7 +171,7 @@ export function FarmPage() {
                   onClick={() => setTab(key)}
                   className={cx(
                     "shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition",
-                    tab === key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+                    tab === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
                   )}
                 >
                   {t(`farm.tabs.${key}`)}
@@ -179,6 +181,8 @@ export function FarmPage() {
             <div className="mt-6" role="tabpanel">
               <Suspense fallback={<PageSpinner />}>
                 {!verified && ["climate", "crops"].includes(tab) && <Alert tone="warning">{t("quality.paused")}</Alert>}
+                {!adviceAvailable && tab === "field" && <Alert tone="warning">{t("quality.advicePending")}</Alert>}
+                {adviceAvailable && tab === "field" && <FieldPanel farm={data} verified={verified} />}
                 {!adviceAvailable && tab === "plan" && <><Alert tone="warning">{t("quality.advicePending")}</Alert><div className="mt-4"><SavedPlans farm={data} /></div></>}
                 {verified && tab === "climate" && (
                   <div className="space-y-10">

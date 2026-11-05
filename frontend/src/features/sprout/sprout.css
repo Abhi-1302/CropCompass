@@ -66,3 +66,22 @@
   .sprout-header { padding-top: 8px; padding-bottom: 8px; }
 }
 @media (prefers-reduced-motion: reduce) { .sprout-launcher img { transition: none; } }
+/* Dark theme: same layout, field-console colours. The mascot artwork is unchanged. */
+:root[data-theme="dark"] .sprout-panel { --sprout-border: #252e2a; background: #141a18; color: #e9eeeb; box-shadow: 0 16px 55px #0008; }
+:root[data-theme="dark"] .sprout-header { background: #10211a; }
+:root[data-theme="dark"] .sprout-actions button:hover, :root[data-theme="dark"] .sprout-icon:hover { background: #1d3d30; }
+:root[data-theme="dark"] .sprout-scenario { background: #19201d; }
+:root[data-theme="dark"] .sprout-scope select option { background: #141a18; }
+:root[data-theme="dark"] .sprout-message.user { background: #19201d; }
+:root[data-theme="dark"] .sprout-starters button { color: #b0dcc5; }
+:root[data-theme="dark"] .sprout-starters button:hover { border-color: #4f9a77; background: #10211a; }
+:root[data-theme="dark"] .sprout-status, :root[data-theme="dark"] .sprout-option dt { color: #a2ada7; }
+:root[data-theme="dark"] .sprout-notice { background: #221b0d; color: #ecd5a8; border-left-color: #c0964a; }
+:root[data-theme="dark"] .sprout-privacy { background: #0f1513; }
+:root[data-theme="dark"] .sprout-compose-actions small, :root[data-theme="dark"] .sprout-history small { color: #85918b; }
+:root[data-theme="dark"] .sprout-compose-actions button { background: #2f7d5b; }
+:root[data-theme="dark"] .sprout-ask, :root[data-theme="dark"] .sprout-text-action,
+:root[data-theme="dark"] .sprout-sources summary, :root[data-theme="dark"] .sprout-sources a { color: #8dcaab; }
+:root[data-theme="dark"] .sprout-ask:hover { background: #10211a; }
+:root[data-theme="dark"] .sprout-launcher-label { background: #141a18; color: #b0dcc5; }
+:root[data-theme="dark"] .sprout-launcher img { filter: drop-shadow(0 3px 4px #0009); }
