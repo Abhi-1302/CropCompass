@@ -108,6 +108,19 @@
   border-color: #36413c;
 }
 
+/* Sign-in panel: a survey-grid backdrop in each theme. */
+.auth-aside {
+  --auth-grid: rgb(6 78 59 / 0.07);
+  background:
+    linear-gradient(var(--auth-grid) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px) 0 0 / 56px 56px,
+    #eef4f0;
+}
+:root[data-theme="dark"] .auth-aside {
+  --auth-grid: rgb(255 255 255 / 0.04);
+  background-color: #0b1110;
+}
+
 /* Field view: a planted crop grows in from the ground line. */
 .field-grow .field-plant {
   transform-box: fill-box;

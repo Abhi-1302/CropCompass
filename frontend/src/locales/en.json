@@ -9,7 +9,7 @@
     "send": "Send message", "stop": "Stop response", "retry": "Retry response", "older": "Earlier messages",
     "empty": "What would you like to explore?", "soilQuestion": "Explain the soil on this farm.",
     "nextQuestion": "What could I plant next?", "helpQuestion": "What can CropCompass do?",
-    "rotationQuestion": "Compare rotations for this farm.", "ask": "Ask Sprout",
+    "rotationQuestion": "Compare rotations for this farm.", "ask": "Ask Sprout", "askMe": "Ask me",
     "explainOption": "Explain this crop option: {{crop}}.",
     "retrieving": "Checking sources", "answering": "Preparing an explanation", "running": "A response is in progress",
     "sources": "Sources", "scenario": "Chat scenario", "savedSettings": "Saved farm settings",

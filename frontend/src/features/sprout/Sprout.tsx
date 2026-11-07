@@ -82,6 +82,7 @@ export function SproutProvider({ children }: { children: ReactNode }) {
         aria-expanded={open} aria-controls="sprout-panel">
         <img src="/sprout.png" width="64" height="64" alt="" />
         <span className="sprout-launcher-label">Sprout</span>
+        <span className="sprout-launcher-bubble">{t("sprout.askMe")}</span>
       </button>
       {activated && <Suspense fallback={null}><Panel key={`${userId}:${farmId ?? "platform"}`}
         open={open} onClose={close} userId={userId} farmId={farmId} onScope={selectScope}

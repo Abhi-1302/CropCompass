@@ -8,6 +8,7 @@ import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { Logo } from "../components/Logo";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { Alert, Button, Field, Input } from "../components/ui";
+import { useTheme } from "../lib/theme";
 
 type Mode = "login" | "register";
 export type AuthNotice = "reset" | "deleted";
@@ -28,39 +29,33 @@ export function useAuthError() {
 
 export function AuthShell({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   const { t } = useTranslation();
+  const theme = useTheme();
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
-      {/* Fixed dark panel in both themes: a survey-grid backdrop and the data sources behind the advice. */}
-      <aside
-        className="relative hidden flex-col justify-between overflow-hidden bg-[#0b1110] p-12 text-white lg:flex"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px), linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px)",
-          backgroundSize: "56px 56px",
-        }}
-      >
-        <Logo light />
+      {/* A survey-grid backdrop and the data sources behind the advice. */}
+      <aside className="auth-aside relative hidden flex-col justify-between overflow-hidden p-12 text-stone-900 lg:flex">
+        <Logo light={theme === "dark"} />
         <div>
-          <p className="text-xs font-semibold tracking-[0.2em] text-[#d4ad67] uppercase">{t("auth.eyebrow")}</p>
+          <p className="text-xs font-semibold tracking-[0.2em] text-amber-700 uppercase">{t("auth.eyebrow")}</p>
           <p className="mt-4 max-w-md text-3xl leading-tight font-semibold">{t("app.tagline")}</p>
-          <ul className="mt-8 max-w-md divide-y divide-white/10 border-y border-white/10 text-sm text-white/80">
+          <ul className="mt-8 max-w-md divide-y divide-stone-900/10 border-y border-stone-900/10 text-sm text-stone-700">
             {(["pitch1", "pitch2", "pitch3"] as const).map((key, index) => (
               <li key={key} className="flex gap-4 py-3">
-                <span className="tabular w-5 shrink-0 font-mono text-xs leading-5 text-white/40">0{index + 1}</span>
+                <span className="tabular w-5 shrink-0 font-mono text-xs leading-5 text-stone-500">0{index + 1}</span>
                 {t(`auth.${key}`)}
               </li>
             ))}
           </ul>
           <dl className="mt-8 grid max-w-md grid-cols-3 gap-4 text-xs">
             {(["power", "modis", "soilgrids"] as const).map((key) => (
-              <div key={key} className="border-l border-[#d4ad67]/50 pl-3">
-                <dt className="font-semibold text-white">{t(`auth.source.${key}`)}</dt>
-                <dd className="mt-0.5 text-white/55">{t(`auth.source.${key}Detail`)}</dd>
+              <div key={key} className="border-l border-amber-600/50 pl-3">
+                <dt className="font-semibold">{t(`auth.source.${key}`)}</dt>
+                <dd className="mt-0.5 text-stone-600">{t(`auth.source.${key}Detail`)}</dd>
               </div>
             ))}
           </dl>
         </div>
-        <p className="text-xs text-white/50">{t("app.footer")}</p>
+        <p className="text-xs text-stone-600">{t("app.footer")}</p>
       </aside>
 
       <div className="flex flex-col bg-stone-50 px-4 py-6">
