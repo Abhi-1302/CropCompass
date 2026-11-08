@@ -182,7 +182,7 @@ export function FarmPage() {
               <Suspense fallback={<PageSpinner />}>
                 {!verified && ["climate", "crops"].includes(tab) && <Alert tone="warning">{t("quality.paused")}</Alert>}
                 {!adviceAvailable && tab === "field" && <Alert tone="warning">{t("quality.advicePending")}</Alert>}
-                {adviceAvailable && tab === "field" && <FieldPanel farm={data} verified={verified} />}
+                {adviceAvailable && tab === "field" && <FieldPanel farm={data} verified={verified} onOpenSoil={() => setTab("soil")} />}
                 {!adviceAvailable && tab === "plan" && <><Alert tone="warning">{t("quality.advicePending")}</Alert><div className="mt-4"><SavedPlans farm={data} /></div></>}
                 {verified && tab === "climate" && (
                   <div className="space-y-10">

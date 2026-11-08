@@ -1,4 +1,3 @@
-import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { SoilLayer } from "../../api/types";
 import { cx } from "../../components/ui";
@@ -18,6 +17,7 @@ const PLANTS = 7;
 
 type Props = {
   soilDepthCm: number;
+  depthAssumed: boolean;
   layers: SoilLayer[];
   waterFraction: number | null;
   sky: Sky | null;
@@ -105,9 +105,8 @@ function Wind() {
   );
 }
 
-export function FieldScene({ soilDepthCm, layers, waterFraction, sky, crop, label }: Props) {
+export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, sky, crop, label }: Props) {
   const { t } = useTranslation();
-  const hatch = useId();
   const soilM = soilDepthCm / 100;
   const maxM = Math.min(2, Math.max(1, Math.ceil(Math.max(soilM, crop?.zone.rootM ?? 0) * 2 + 0.01) / 2));
   const y = (depthM: number) => SURFACE + (Math.min(depthM, maxM) / maxM) * (BOTTOM - SURFACE);
@@ -122,12 +121,6 @@ export function FieldScene({ soilDepthCm, layers, waterFraction, sky, crop, labe
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block h-auto w-full select-none">
-      <defs>
-        <pattern id={hatch} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="10" className="stroke-stone-400" strokeWidth="1.2" />
-        </pattern>
-      </defs>
-
       {/* Sky and weather */}
       <rect x="0" y="0" width={W} height={SURFACE} className="fill-sky-50" />
       {sky?.windy && <Wind />}
@@ -146,7 +139,6 @@ export function FieldScene({ soilDepthCm, layers, waterFraction, sky, crop, labe
         </text>
       )}
 
-      {/* Soil: layers to soil depth, then the restrictive layer */}
       <rect x="0" y={SURFACE} width={W} height={H - SURFACE} className="fill-amber-50" />
       {bands.map((band, index) => (
         <rect
@@ -160,7 +152,8 @@ export function FieldScene({ soilDepthCm, layers, waterFraction, sky, crop, labe
       ))}
       {soilM < maxM && (
         <g>
-          <rect x="0" y={soilBottom} width={W} height={H - soilBottom} fill={`url(#${hatch})`} className="opacity-60" />
+          <rect x="0" y={soilBottom} width={W} height={H - soilBottom} className="fill-stone-100" />
+          <line x1="0" x2={RIGHT + 20} y1={soilBottom} y2={soilBottom} className="stroke-stone-400" strokeDasharray="4 4" />
           <text x={LEFT + 8} y={Math.min(BOTTOM - 8, soilBottom + 20)} className="fill-stone-500 text-[11px]">
             {t("field.restrictive")}
           </text>
@@ -208,28 +201,30 @@ export function FieldScene({ soilDepthCm, layers, waterFraction, sky, crop, labe
       </g>
 
       {/* Annotations */}
-      <g className="text-[12px]">
-        <line x1={RIGHT + 20} x2={RIGHT + 20} y1={SURFACE} y2={soilBottom} className="stroke-stone-400" />
-        <text x={RIGHT + 30} y={soilBottom - 6} className="fill-stone-600">
-          {t("field.soilDepth", { value: soilM.toFixed(1) })}
-        </text>
-        {crop && (
-          <text x={RIGHT + 30} y={Math.max(SURFACE + 34, Math.min(y(crop.zone.effectiveM) - 6, soilBottom - 26))} className="fill-amber-700 font-semibold">
-            {crop.zone.limited
-              ? t("field.rootsLimited", { value: crop.zone.effectiveM.toFixed(1) })
-              : t("field.rootsLabel", { value: crop.zone.rootM.toFixed(1) })}
-          </text>
-        )}
-        {waterFraction != null && (
-          <g>
-            <rect x={RIGHT + 30} y={SURFACE + 8} width="120" height="8" rx="4" className="fill-stone-200" />
-            <rect x={RIGHT + 30} y={SURFACE + 8} width={120 * Math.max(0, Math.min(1, waterFraction))} height="8" rx="4" className="fill-sky-500" />
-            <text x={RIGHT + 30} y={SURFACE + 30} className="fill-sky-700">
-              {t("field.waterNowLabel", { pct: Math.round(waterFraction * 100) })}
-            </text>
-          </g>
-        )}
-      </g>
+      <line x1={RIGHT + 20} x2={RIGHT + 20} y1={SURFACE} y2={soilBottom} className="stroke-stone-400" />
+      <foreignObject x={RIGHT + 30} y={SURFACE + 8} width={W - RIGHT - 40} height={BOTTOM - SURFACE - 8}>
+        <div className="space-y-3 break-words text-xs leading-snug text-stone-600">
+          {waterFraction != null && (
+            <div className="text-sky-700">
+              <div className="mb-1 h-2 overflow-hidden rounded bg-stone-200">
+                <div className="h-full bg-sky-500" style={{ width: `${100 * Math.max(0, Math.min(1, waterFraction))}%` }} />
+              </div>
+              <p>{t("field.waterNowLabel", { pct: Math.round(waterFraction * 100) })}</p>
+            </div>
+          )}
+          <div>
+            <p className="font-semibold">{t("field.soilDepth", { value: soilM.toFixed(1) })}</p>
+            <p>{t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}</p>
+          </div>
+          {crop && (
+            <p className="font-semibold text-amber-700">
+              {crop.zone.limited
+                ? t("field.rootsLimited", { value: crop.zone.effectiveM.toFixed(1) })
+                : t("field.rootsLabel", { value: crop.zone.rootM.toFixed(1) })}
+            </p>
+          )}
+        </div>
+      </foreignObject>
     </svg>
   );
 }
