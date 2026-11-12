@@ -1,8 +1,9 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { api } from "./client";
+import { api, ApiError, identityOperation, resetIdentityRequests } from "./client";
 import type {
   Catalog,
+  AuthCapabilities,
   ClimateProfile,
   CropFit,
   CropSeason,
@@ -42,14 +43,120 @@ export const keys = {
 };
 
 export function useMe() {
-  return useQuery({ queryKey: keys.me, queryFn: () => api<User>("/auth/me"), retry: false, staleTime: 5 * 60_000 });
+  const client = useQueryClient();
+  return useQuery({ queryKey: keys.me, queryFn: async () => {
+    const user = await api<User>("/auth/me").catch((error) => {
+      if (error instanceof ApiError && error.status === 401 && client.getQueryData<User>(keys.me)) {
+        resetIdentityRequests();
+        clearSproutPreferences();
+        client.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" && query.queryKey[0] !== "auth-capabilities" });
+      }
+      throw error;
+    });
+    const previous = client.getQueryData<User>(keys.me);
+    if (previous && previous.id !== user.id) {
+      resetIdentityRequests();
+      clearSproutPreferences();
+      client.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" });
+    }
+    return user;
+  }, retry: false, staleTime: 5 * 60_000, refetchOnWindowFocus: "always" });
+}
+
+function identityChanged(client: QueryClient, user?: User) {
+  resetIdentityRequests();
+  if (!user || client.getQueryData<User>(keys.me)?.id !== user.id) {
+    clearSproutPreferences();
+    client.clear();
+  }
+  if (user) client.setQueryData(keys.me, user);
+  try { localStorage.setItem("cropcompass:identity", crypto.randomUUID()); } catch {}
+}
+
+export function useIdentitySync() {
+  const client = useQueryClient();
+  useEffect(() => {
+    const refresh = () => {
+      resetIdentityRequests();
+      clearSproutPreferences();
+      client.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" });
+      void client.resetQueries({ queryKey: keys.me, exact: true });
+    };
+    const storage = (event: StorageEvent) => { if (event.key === "cropcompass:identity") refresh(); };
+    window.addEventListener("storage", storage);
+    window.addEventListener("cropcompass:session-expired", refresh);
+    return () => { window.removeEventListener("storage", storage); window.removeEventListener("cropcompass:session-expired", refresh); };
+  }, [client]);
+}
+
+export function useAuthCapabilities() {
+  return useQuery({ queryKey: ["auth-capabilities"], queryFn: () => api<AuthCapabilities>("/auth/capabilities"), staleTime: 60_000, retry: false });
+}
+
+export function useGuest() {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: () => identityOperation(async () => {
+    try { return await api<User>("/auth/guest", { method: "POST", body: {} }); }
+    catch (error) {
+      if (!(error instanceof ApiError)) {
+        const resumed = await api<User>("/auth/me").catch(() => null);
+        if (resumed) return resumed;
+      }
+      throw error;
+    }
+  }), onSuccess: (user) => identityChanged(client, user) });
+}
+
+export function useConvertGuest() {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: (body: { name: string; email: string; password: string }) =>
+    identityOperation(() => api<User>("/account/convert-guest", { method: "POST", body })),
+    onSuccess: (user) => identityChanged(client, user) });
+}
+
+export function useDeleteGuest() {
+  const client = useQueryClient();
+  return useMutation({ mutationFn: () => identityOperation(() => api<void>("/account/guest/delete", { method: "POST", body: { confirm: true } })),
+    onSuccess: () => identityChanged(client) });
+}
+
+export function useGuestActivity(user: User | undefined) {
+  const client = useQueryClient();
+  const capabilities = useAuthCapabilities().data;
+  useEffect(() => {
+    if (!user?.is_guest) return;
+    let last = 0;
+    let pending = false;
+    let active = true;
+    const checkpoint = () => {
+      if (document.visibilityState !== "visible" || pending || Date.now() - last < (capabilities?.activity_interval_seconds ?? 900) * 1000) return;
+      pending = true;
+      last = Date.now();
+      void identityOperation(async () => {
+        if (!active || client.getQueryData<User>(keys.me)?.is_guest !== true) return;
+        const updated = await api<User>("/auth/guest/activity", { method: "POST", body: {} });
+        if (active && client.getQueryData<User>(keys.me)?.id === updated.id) client.setQueryData(keys.me, updated);
+      }).catch(() => undefined).finally(() => { pending = false; });
+    };
+    document.addEventListener("pointerdown", checkpoint);
+    document.addEventListener("keydown", checkpoint);
+    document.addEventListener("visibilitychange", checkpoint);
+    window.addEventListener("focus", checkpoint);
+    return () => {
+      active = false;
+      document.removeEventListener("pointerdown", checkpoint);
+      document.removeEventListener("keydown", checkpoint);
+      document.removeEventListener("visibilitychange", checkpoint);
+      window.removeEventListener("focus", checkpoint);
+    };
+  }, [user?.id, user?.is_guest, client, capabilities?.activity_interval_seconds]);
 }
 
 export function useLogin() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (body: { email: string; password: string }) => api<User>("/auth/login", { method: "POST", body }),
-    onSuccess: (user) => client.setQueryData(keys.me, user),
+    onSuccess: (user) => identityChanged(client, user),
   });
 }
 
@@ -58,15 +165,15 @@ export function useRegister() {
   return useMutation({
     mutationFn: (body: { name: string; email: string; password: string }) =>
       api<User>("/auth/register", { method: "POST", body }),
-    onSuccess: (user) => client.setQueryData(keys.me, user),
+    onSuccess: (user) => identityChanged(client, user),
   });
 }
 
 export function useLogout() {
   const client = useQueryClient();
   return useMutation({
-    mutationFn: () => api<void>("/auth/logout", { method: "POST" }),
-    onSettled: () => { clearSproutPreferences(); client.clear(); },
+    mutationFn: () => identityOperation(() => api<void>("/auth/logout", { method: "POST" })),
+    onSuccess: () => identityChanged(client),
   });
 }
 
@@ -94,7 +201,7 @@ export function useDeleteAccount() {
   const client = useQueryClient();
   return useMutation({
     mutationFn: (password: string) => api<void>("/account/delete", { method: "POST", body: { password } }),
-    onSuccess: () => { clearSproutPreferences(); client.clear(); },
+    onSuccess: () => identityChanged(client),
   });
 }
 

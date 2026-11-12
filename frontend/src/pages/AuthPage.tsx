@@ -1,9 +1,10 @@
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
+import { UserRound } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useLocation, useNavigate } from "react-router";
 import { ApiError } from "../api/client";
-import { useLogin, useMe, useRegister } from "../api/hooks";
+import { useAuthCapabilities, useGuest, useLogin, useMe, useRegister } from "../api/hooks";
 import { LanguageSwitcher } from "../components/LanguageSwitcher";
 import { Logo } from "../components/Logo";
 import { ThemeToggle } from "../components/ThemeToggle";
@@ -11,7 +12,7 @@ import { Alert, Button, Field, Input } from "../components/ui";
 import { useTheme } from "../lib/theme";
 
 type Mode = "login" | "register";
-export type AuthNotice = "reset" | "deleted";
+export type AuthNotice = "reset" | "deleted" | "guestExpired";
 
 /** Server messages are English; the common cases get the user's language. */
 export function useAuthError() {
@@ -19,6 +20,7 @@ export function useAuthError() {
   return (error: Error | null, mode?: Mode): string | null => {
     if (!error) return null;
     if (error instanceof ApiError) {
+      if (error.message.startsWith("guest_") || error.message === "registered_required") return t("guest.requestError");
       if (error.status === 429) return t("auth.tooMany");
       if (error.status === 401 && mode === "login") return t("auth.invalidLogin");
       if (error.status === 409 && mode === "register") return t("auth.emailTaken");
@@ -124,14 +126,16 @@ export function AuthPage({ mode }: { mode: Mode }) {
   const me = useMe();
   const login = useLogin();
   const register = useRegister();
+  const guest = useGuest();
+  const capabilities = useAuthCapabilities();
   const errorText = useAuthError();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const mutation = mode === "login" ? login : register;
 
-  if (me.data) return <Navigate to="/" replace />;
+  if (me.data && !me.isError) return <Navigate to={me.data.is_guest && mode === "register" ? "/account" : "/"} replace />;
 
   const state = location.state as { from?: string; notice?: AuthNotice } | null;
-  const destination = state?.from ?? "/";
+  const destination = state?.from?.startsWith("/") && !state.from.startsWith("//") ? state.from : "/";
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -149,7 +153,7 @@ export function AuthPage({ mode }: { mode: Mode }) {
     >
       {state?.notice && (
         <div className="mt-6">
-          <Alert tone="info">{t(state.notice === "reset" ? "auth.resetDone" : "account.deleted")}</Alert>
+          <Alert tone="info">{t(state.notice === "reset" ? "auth.resetDone" : state.notice === "guestExpired" ? "guestErrors.guest_expired" : "account.deleted")}</Alert>
         </div>
       )}
       <form className="mt-8 space-y-5" onSubmit={submit}>
@@ -204,6 +208,18 @@ export function AuthPage({ mode }: { mode: Mode }) {
           {t(mode === "login" ? "auth.login" : "auth.register")}
         </Button>
       </form>
+
+      {capabilities.data?.guest_enabled && (
+        <div className="mt-6 space-y-3 border-t border-stone-200 pt-5">
+          <p className="text-xs leading-relaxed text-stone-600">{t("guest.disclosure", { days: capabilities.data.retention_days })}</p>
+          <p className="text-xs text-stone-600">{t("guest.limits", { farms: capabilities.data.max_farms, requests: capabilities.data.sprout_daily_requests })}</p>
+          <Button type="button" variant="secondary" className="w-full" busy={guest.isPending} disabled={mutation.isPending || me.isPending}
+            onClick={() => guest.mutate(undefined, { onSuccess: () => navigate(destination, { replace: true }) })}>
+            <UserRound className="mr-2 size-4" aria-hidden="true" />{t("guest.continue")}
+          </Button>
+          {guest.error && <Alert tone="error">{errorText(guest.error)}</Alert>}
+        </div>
+      )}
 
       <p className="mt-6 text-center text-sm">
         <Link

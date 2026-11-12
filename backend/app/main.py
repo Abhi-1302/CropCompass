@@ -50,6 +50,8 @@ def create_app(
             if origin and origin.rstrip("/") not in settings.origins:
                 return JSONResponse({"detail": "Origin not allowed"}, status_code=403)
         response = await call_next(request)
+        if response.status_code == 401:
+            auth.clear_session_cookies(response, settings)
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("X-Frame-Options", "DENY")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")

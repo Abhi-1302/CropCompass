@@ -52,7 +52,7 @@ function draftFrom(soil: SoilProfile): Draft {
     silt_pct: text(effective.silt_pct),
     clay_pct: text(effective.clay_pct),
     awc_mm_per_m: text(own.awc_mm_per_m),
-    depth_cm: String(effective.depth_cm),
+    depth_cm: text(own.depth_cm),
     organic_carbon_pct: text(effective.organic_carbon_pct),
     ph: text(effective.ph),
   };
@@ -130,9 +130,13 @@ function SoilEditor({ farmId, soil, onClose }: { farmId: string; soil: SoilProfi
               </Select>
             )}
           </Field>
-          <Field label={t("soil.depthLabel")}>
+          <Field label={t("soil.depthLabel")} hint={t("soil.depthHint")}>
             {(id) => (
               <Select id={id} value={draft.depth_cm} onChange={set("depth_cm")}>
+                <option value="">{t("soil.depthUnknown")}</option>
+                {draft.depth_cm && !DEPTHS.some((depth) => String(depth) === draft.depth_cm) && (
+                  <option value={draft.depth_cm}>{draft.depth_cm} cm</option>
+                )}
                 {DEPTHS.map((depth) => (
                   <option key={depth} value={depth}>
                     {t(`soil.depthOption.${depth}`)}
@@ -146,7 +150,7 @@ function SoilEditor({ farmId, soil, onClose }: { farmId: string; soil: SoilProfi
           {(["sand_pct", "silt_pct", "clay_pct"] as const).map((key) => (
             <Field key={key} label={t(`soil.${key}`)}>
               {(id) => (
-                <Input id={id} type="number" min="0" max="100" step="1" inputMode="decimal" value={draft[key]} onChange={set(key)} />
+                <Input id={id} type="number" min="0" max="100" step="any" inputMode="decimal" value={draft[key]} onChange={set(key)} />
               )}
             </Field>
           ))}
@@ -233,7 +237,7 @@ function MapLayers({ summary }: { summary: SoilSummary }) {
   );
 }
 
-function SoilFacts({ soil, summary }: { soil: EffectiveSoil; summary: SoilSummary | null }) {
+function SoilFacts({ soil, summary, depthAssumed }: { soil: EffectiveSoil; summary: SoilSummary | null; depthAssumed: boolean }) {
   const { t } = useTranslation();
   const top = summary?.topsoil;
   return (
@@ -250,7 +254,7 @@ function SoilFacts({ soil, summary }: { soil: EffectiveSoil; summary: SoilSummar
       <Stat
         title={t("soil.water")}
         value={t("soil.waterValue", { mm: soil.awc_mm })}
-        detail={t("soil.waterDetail", { depth: soil.depth_cm, perMetre: soil.awc_mm_per_m })}
+        detail={`${t("soil.waterDetail", { depth: soil.depth_cm, perMetre: soil.awc_mm_per_m })}. ${t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}.`}
       />
       <Stat
         title={t("soil.carbon")}
@@ -290,6 +294,7 @@ export function SoilPanel({ farmId }: { farmId: string }) {
   const data = soil.data;
   const summary = "topsoil" in data.summary ? (data.summary as SoilSummary) : null;
   const source = data.effective.source;
+  const depthAssumed = data.override?.depth_cm == null;
   return (
     <div className="space-y-6">
       {!summary && source !== "farmer" && <Alert tone="info">{t("soil.unavailable")}</Alert>}
@@ -307,17 +312,21 @@ export function SoilPanel({ farmId }: { farmId: string }) {
                 {t("soil.reset")}
               </Button>
             )}
-            <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+            <Button variant="secondary" size="sm" onClick={() => setEditing(true)} data-tour-id="soil-edit">
               {t("soil.edit")}
             </Button>
           </div>
         )}
       </div>
+      <p className="text-sm text-stone-600">
+        {t("field.soilDepth", { value: (data.effective.depth_cm / 100).toFixed(1) })}. {t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}.
+        {depthAssumed && <> {t("soil.depthAssumptionNote")}</>}
+      </p>
       {save.isSuccess && !editing && <Alert tone="info">{t("soil.saved")}</Alert>}
       {editing ? (
         <SoilEditor farmId={farmId} soil={data} onClose={() => setEditing(false)} />
       ) : (
-        <SoilFacts soil={data.effective} summary={summary} />
+        <SoilFacts soil={data.effective} summary={summary} depthAssumed={depthAssumed} />
       )}
       {summary && <MapLayers summary={summary} />}
       <p className="text-xs text-stone-500">{t("soil.sourceNote")}</p>

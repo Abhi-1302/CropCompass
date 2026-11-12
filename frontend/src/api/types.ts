@@ -1,4 +1,5 @@
-export type User = { id: string; email: string; name: string };
+export type User = { id: string; email: string | null; name: string; is_guest: boolean; guest_expires_at: string | null; guest_expiring_soon: boolean };
+export type AuthCapabilities = { guest_enabled: boolean; retention_days: number; warning_days: number; activity_interval_seconds: number; max_farms: number; sprout_daily_requests: number };
 
 export type Irrigation = "rainfed" | "protective" | "full";
 export type DataStatus = "pending" | "ready" | "error" | "limited";

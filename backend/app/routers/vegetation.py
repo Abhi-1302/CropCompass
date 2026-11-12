@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, BackgroundTasks, Request, status
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 
 from app.deps import CurrentUser, DbSession, check_build_quota, owned_farm
 from app.models import VegetationSeries
+from app.services.guests import build_budget
 from app.services.vegetation import build_vegetation, is_running, needs_download, vegetation_view
 from engine.crops.catalog import load_catalog, load_species
 
@@ -25,6 +26,17 @@ def get_vegetation(
 ) -> dict:
     farm = owned_farm(db, user, farm_id)
     if needs_download(db.get(VegetationSeries, farm.id), farm.id):
+        try:
+            build_budget(db, user, request.app.state.settings)
+            db.commit()
+        except HTTPException as error:
+            db.rollback()
+            if error.status_code != 429:
+                raise
+            return {
+                **vegetation_view(db, farm),
+                "error": "Guest download limit reached. Saved observations remain available.",
+            }
         queue_vegetation(request, background, farm.id)
     return vegetation_view(db, farm)
 
@@ -36,6 +48,8 @@ def refresh_vegetation(
     farm = owned_farm(db, user, farm_id)
     if not is_running(farm.id):
         check_build_quota(request, user)
+        build_budget(db, user, request.app.state.settings)
+        db.commit()
         queue_vegetation(request, background, farm.id)
     return vegetation_view(db, farm)
 
@@ -44,7 +58,7 @@ def refresh_vegetation(
 def get_crops(region: str | None = None) -> dict:
     catalog = load_catalog(region)
     sheet = load_species()
-    # Rooting depth and heat threshold (FAO-56 based species sheet) for the Field view; the cached catalog is not mutated.
+    # Field view uses the species sheet without mutating the cached catalog.
     roots = {
         crop["id"]: {"root_m": sheet[crop["id"]]["root_m"], "heat_c": sheet[crop["id"]]["heat_c"]}
         for crop in catalog["crops"]

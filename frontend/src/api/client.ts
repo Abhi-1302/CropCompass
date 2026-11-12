@@ -10,6 +10,19 @@ export class ApiError extends Error {
 }
 
 const CSRF_COOKIE = "af_csrf";
+let identityController = new AbortController();
+let identityQueue: Promise<unknown> = Promise.resolve();
+
+export function resetIdentityRequests() {
+  identityController.abort();
+  identityController = new AbortController();
+}
+
+export function identityOperation<T>(action: () => Promise<T>): Promise<T> {
+  const pending = identityQueue.then(action, action);
+  identityQueue = pending.catch(() => undefined);
+  return pending;
+}
 
 function readCookie(name: string): string | undefined {
   const entry = document.cookie.split("; ").find((row) => row.startsWith(`${name}=`));
@@ -44,11 +57,17 @@ export async function api<T>(path: string, options: { method?: string; body?: un
     method,
     headers,
     credentials: "same-origin",
+    signal: identityController.signal,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
   });
   if (response.status === 204) return undefined as T;
   const data: unknown = await response.json().catch(() => null);
-  if (!response.ok) throw new ApiError(response.status, errorMessage(data, response.statusText || "Request failed"));
+  if (!response.ok) {
+    if (typeof window !== "undefined" && response.status === 401 && !["/auth/login", "/auth/me", "/auth/guest"].includes(path)) {
+      window.dispatchEvent(new Event("cropcompass:session-expired"));
+    }
+    throw new ApiError(response.status, errorMessage(data, response.statusText || "Request failed"));
+  }
   return data as T;
 }
 
@@ -60,10 +79,11 @@ export async function streamApi(
   const token = readCookie(CSRF_COOKIE);
   if (token) headers["X-CSRF-Token"] = token;
   const response = await fetch(`/api/v1${path}`, {
-    method: "POST", headers, credentials: "same-origin", body: JSON.stringify(body), signal,
+    method: "POST", headers, credentials: "same-origin", body: JSON.stringify(body), signal: AbortSignal.any([signal, identityController.signal]),
   });
   if (!response.ok) {
     const data: unknown = await response.json().catch(() => null);
+    if (typeof window !== "undefined" && response.status === 401) window.dispatchEvent(new Event("cropcompass:session-expired"));
     throw new ApiError(response.status, errorMessage(data, "provider_error"));
   }
   if (!response.body || !response.headers.get("content-type")?.includes("text/event-stream")) {
