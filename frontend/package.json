@@ -8,6 +8,7 @@
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test:sprout": "node --experimental-strip-types --test scripts/test-sprout-stream.mts",
+    "test:tour": "node --experimental-strip-types --test scripts/test-tour.mts",
     "check:locales": "node scripts/check-locales.mjs",
     "preview": "vite preview"
   },

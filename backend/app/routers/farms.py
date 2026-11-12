@@ -14,6 +14,7 @@ from app.schemas import FarmCreate, FarmOut, FarmUpdate, SoilOut, SoilOverride
 from app.services.climate_cache import advice_weather_context
 from app.services.farm_data import build_farm_data
 from app.services.geometry import BoundaryError, field_shape
+from app.services.guests import build_budget
 from app.services.insights import climate_profile
 from app.services.planner import soil_water_now
 from app.services.soil import effective_soil
@@ -68,9 +69,13 @@ def create_farm(
     settings: SettingsDep,
 ) -> Farm:
     count = db.scalar(select(func.count()).select_from(Farm).where(Farm.user_id == user.id))
-    if count >= settings.max_farms_per_user:
-        raise HTTPException(status.HTTP_409_CONFLICT, f"You can have up to {settings.max_farms_per_user} farms.")
+    limit = min(settings.max_farms_per_user, settings.guest_max_farms) if user.is_guest else settings.max_farms_per_user
+    if count >= limit:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "guest_farm_limit" if user.is_guest else f"You can have up to {limit} farms."
+        )
     check_build_quota(request, user)
+    build_budget(db, user, settings)
     lat, lon, area_ha, boundary = body.lat, body.lon, body.area_ha, None
     if body.boundary is not None:
         try:
@@ -125,6 +130,7 @@ def refresh_farm(
 ) -> Farm:
     farm = owned_farm(db, user, farm_id)
     check_build_quota(request, user)
+    build_budget(db, user, request.app.state.settings)
     farm.data_status, farm.data_error = "pending", None
     db.commit()
     _queue_build(request, background, farm.id)

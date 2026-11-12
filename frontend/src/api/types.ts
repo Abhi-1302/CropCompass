@@ -1,4 +1,5 @@
-export type User = { id: string; email: string; name: string };
+export type User = { id: string; email: string | null; name: string; is_guest: boolean; guest_expires_at: string | null; guest_expiring_soon: boolean };
+export type AuthCapabilities = { guest_enabled: boolean; retention_days: number; warning_days: number; activity_interval_seconds: number; max_farms: number; sprout_daily_requests: number };
 
 export type Irrigation = "rainfed" | "protective" | "full";
 export type DataStatus = "pending" | "ready" | "error" | "limited";
@@ -59,6 +60,8 @@ export type MonthlyRow = {
   tmin_c: number;
   hot_days: number;
   frost_days: number;
+  /** Mean 2 m wind speed; missing from climate profiles cached before it was added. */
+  wind_ms?: number;
 };
 
 export type Trend = { name: string; slope_per_decade: number; p_value: number; significant: boolean };
@@ -242,6 +245,8 @@ export type Catalog = {
     { ym: number; n_rec: number; price: number; cost: number; product?: string; sowing: Record<string, [string, string]> }
   >;
   economics: { currency: string; n_price_per_kg: number; validated: boolean; price_sources: Record<string, string[]> };
+  /** FAO-56 based rooting depth (m) and flowering heat threshold (°C) per crop. */
+  species?: Record<string, { root_m: number; heat_c: number | null }>;
 };
 
 export type SeasonRecord = {

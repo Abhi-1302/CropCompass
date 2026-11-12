@@ -328,7 +328,7 @@ def test_sprout_migration_on_isolated_sqlite(tmp_path, monkeypatch):
         command.upgrade(config, "head")
         engine = make_engine(f"sqlite:///{path.as_posix()}")
         with engine.connect() as connection:
-            assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
+            assert connection.scalar(text("SELECT version_num FROM alembic_version")) == "0007"
             assert {"chat_threads", "chat_messages", "chat_runs", "chat_usage_daily"}.issubset(
                 inspect(connection).get_table_names()
             )

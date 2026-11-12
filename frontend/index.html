@@ -4,7 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="CropCompass: plan resilient crop rotations with NASA Earth data." />
-    <meta name="theme-color" content="#047857" />
+    <meta name="theme-color" content="#0c100f" />
+    <script>
+      // Apply the saved theme before first paint (dark unless the viewer chose light).
+      (function () {
+        var theme = "dark";
+        try { if (localStorage.getItem("cropcompass:theme") === "light") theme = "light"; } catch (e) {}
+        document.documentElement.dataset.theme = theme;
+        if (theme === "light") document.querySelector('meta[name="theme-color"]').setAttribute("content", "#047857");
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>CropCompass</title>
   </head>

@@ -33,7 +33,7 @@ function RotationCard({ option, catalog, currency, selected, onSelect, onSave, s
     <Card className={cx(option.rank === 1 && "ring-2 ring-emerald-600/30")}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-white">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-stone-900 text-sm font-semibold text-stone-50">
             {option.rank}
           </span>
           <div>
@@ -193,7 +193,7 @@ export function RotationsView({ farm, irrigation, weights }: { farm: Farm; irrig
               }}
               className={cx(
                 "rounded-lg px-4 py-2 text-sm font-medium transition",
-                residue === key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+                residue === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
               )}
             >
               {t(key === "incorporated" ? "plan.residueKept" : "plan.residueRemoved")}

@@ -66,7 +66,7 @@ def build_profile(
             "data_until": rain.last_valid_index().date().isoformat(),
         },
         "assumptions": {"awc_mm": round(awc), "dry_day_mm": ind.DRY_DAY_MM},
-        "monthly": ind.monthly_climatology(rain, et0, tmax, tmin, years),
+        "monthly": ind.monthly_climatology(rain, et0, tmax, tmin, years, frame.get("WS2M")),
         "annual_rain": annual,
         "aridity": {"index": round(aridity, 2), "class": ind.aridity_class(aridity), "et0_mm": round(et0_median)},
         "growing_season": season,

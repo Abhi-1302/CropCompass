@@ -1,7 +1,85 @@
 @import "tailwindcss";
 
+/*
+ * Theme tokens. Light mode keeps Tailwind's default stone/emerald/amber/red/sky scales.
+ * Dark mode ("field console") re-maps the same scales under :root[data-theme="dark"], so existing components
+ * switch theme without dark: variants. `surface` replaces bg-white; `brand` is the filled-button colour,
+ * which must stay dark enough for white text in both themes.
+ */
 @theme {
   --font-sans: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Noto Sans", "Helvetica Neue", Arial, sans-serif;
+  --color-surface: #ffffff;
+  --color-brand: #047857;
+  --color-brand-strong: #065f46;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface: #141a18;
+  --color-brand: #2f7d5b;
+  --color-brand-strong: #3a9169;
+
+  /* Graphite neutrals with a faint green cast (50 = page, 900 = ink). */
+  --color-stone-50: #0c100f;
+  --color-stone-100: #19201d;
+  --color-stone-200: #252e2a;
+  --color-stone-300: #36413c;
+  --color-stone-400: #56625c;
+  --color-stone-500: #85918b;
+  --color-stone-600: #a2ada7;
+  --color-stone-700: #bec7c2;
+  --color-stone-800: #d7dedb;
+  --color-stone-900: #e9eeeb;
+  --color-stone-950: #f5f8f6;
+
+  /* Chlorophyll green */
+  --color-emerald-50: #10211a;
+  --color-emerald-100: #142a21;
+  --color-emerald-200: #1d3d30;
+  --color-emerald-300: #285a45;
+  --color-emerald-400: #3b7d5f;
+  --color-emerald-500: #4f9a77;
+  --color-emerald-600: #6cb592;
+  --color-emerald-700: #8dcaab;
+  --color-emerald-800: #b0dcc5;
+  --color-emerald-900: #d2ecdf;
+  --color-emerald-950: #ebf7f1;
+
+  /* Wheat / ochre */
+  --color-amber-50: #221b0d;
+  --color-amber-100: #2c2311;
+  --color-amber-200: #463717;
+  --color-amber-300: #6b5222;
+  --color-amber-400: #9a7633;
+  --color-amber-500: #c0964a;
+  --color-amber-600: #d4ad67;
+  --color-amber-700: #e2c286;
+  --color-amber-800: #ecd5a8;
+  --color-amber-900: #f4e6c9;
+
+  /* Clay red */
+  --color-red-50: #261412;
+  --color-red-100: #331a17;
+  --color-red-200: #4f2621;
+  --color-red-300: #77382f;
+  --color-red-400: #a65344;
+  --color-red-500: #c76b5b;
+  --color-red-600: #db8a7b;
+  --color-red-700: #e8a699;
+  --color-red-800: #f0c3b9;
+  --color-red-900: #f7ddd7;
+
+  /* Water blue */
+  --color-sky-50: #0f1b24;
+  --color-sky-100: #13232f;
+  --color-sky-200: #1c3444;
+  --color-sky-300: #2a4d64;
+  --color-sky-400: #3f6f8d;
+  --color-sky-500: #5a8fae;
+  --color-sky-600: #7aa9c5;
+  --color-sky-700: #9cc0d6;
+  --color-sky-800: #bfd6e4;
+  --color-sky-900: #dde9f1;
 }
 
 @layer base {
@@ -10,5 +88,59 @@
   }
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-emerald-600;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* OpenStreetMap tiles only come in light; dim and invert them in dark mode (satellite imagery is left alone). */
+:root[data-theme="dark"] .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.82) contrast(0.92);
+}
+:root[data-theme="dark"] .leaflet-container {
+  background: #0c100f;
+}
+:root[data-theme="dark"] .leaflet-bar a,
+:root[data-theme="dark"] .leaflet-control-attribution {
+  background: #19201d;
+  color: #bec7c2;
+  border-color: #36413c;
+}
+
+/* Sign-in panel: a survey-grid backdrop in each theme. */
+.auth-aside {
+  --auth-grid: rgb(6 78 59 / 0.07);
+  background:
+    linear-gradient(var(--auth-grid) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, var(--auth-grid) 1px, transparent 1px) 0 0 / 56px 56px,
+    #eef4f0;
+}
+:root[data-theme="dark"] .auth-aside {
+  --auth-grid: rgb(255 255 255 / 0.04);
+  background-color: #0b1110;
+}
+
+/* Field view: a planted crop grows in from the ground line. */
+.field-grow .field-plant {
+  transform-box: fill-box;
+  transform-origin: bottom center;
+  animation: field-grow 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.field-grow .field-roots {
+  animation: field-fade 0.8s ease-out both;
+}
+@keyframes field-grow {
+  from { transform: scaleY(0.2); opacity: 0; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+@keyframes field-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .field-grow .field-plant,
+  .field-grow .field-roots {
+    animation: none;
   }
 }

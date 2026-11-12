@@ -14,7 +14,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.deps import CurrentSession, CurrentUser, DbSession, SettingsDep, owned_farm
 from app.models import ChatMessage, ChatRun, ChatThread, User
-from app.services import sprout
+from app.services import guests, sprout
 from app.services.sprout_context import build_evidence, conversation_context, knowledge
 from app.services.sprout_llm import POLICY, ROUTING, GroqModel, ModelFailure, bounded_messages
 from app.sprout_schemas import ChatResolution, ChatSendIn, ChatThreadIn
@@ -150,6 +150,10 @@ async def generate(request: Request, factory, settings, user_id, session_id, thr
             def quota():
                 if not request.app.state.limiters["advice"].hit(str(user_id)):
                     raise HTTPException(429, "sprout_busy")
+                with factory() as budget_db:
+                    budget_user = guests.alive(budget_db.get(User, user_id))
+                    guests.advice_budget(budget_db, budget_user, settings)
+                    budget_db.commit()
 
             evidence = await run_in_threadpool(build_evidence, factory, user_id, thread_id, body, resolution, quota)
             if context.get("previous_revision") and evidence.get("input_revision") != context["previous_revision"]:
@@ -247,11 +251,14 @@ async def send_message(
     if not body.allow_ai:
         raise HTTPException(400, "sprout_consent_required")
     user_id, session_id = user.id, session.id
+    network = guests.network_key(request, settings) if user.is_guest else None
     if not request.app.state.limiters["sprout"].hit(str(user_id)):
         raise HTTPException(429, "sprout_busy")
     db.rollback()
     factory = request.app.state.session_factory
-    run, created = await run_in_threadpool(sprout.begin_run, factory, user_id, thread_id, body, settings)
+    run, created = await run_in_threadpool(
+        sprout.begin_run, factory, user_id, thread_id, body, settings, session_id, network
+    )
     if not created:
 
         async def duplicate():

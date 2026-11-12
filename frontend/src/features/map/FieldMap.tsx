@@ -21,7 +21,7 @@ const PIN_ICON = L.divIcon({
 });
 const CORNER_ICON = L.divIcon({
   className: "",
-  html: '<div class="size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-emerald-700 bg-white shadow"></div>',
+  html: '<div class="size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-emerald-700 bg-surface shadow"></div>',
   iconSize: [0, 0],
 });
 
