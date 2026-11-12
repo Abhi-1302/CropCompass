@@ -1,6 +1,12 @@
 {
-  "version": "2026-10-27",
+  "version": "2026-11-12",
   "sections": [
+    {
+      "id": "guest",
+      "title": "Guest access and keeping your data",
+      "tags": ["guest", "account", "signup", "expiry", "अतिथि", "అతిథి"],
+      "text": "When enabled, Continue as guest opens a private session with the normal farm, journal, soil, climate, planning, export and Sprout workflows. Region support, data readiness, consent and usage budgets still apply. The UI shows the configured inactivity expiry and limits. Guest access depends on the browser session; clearing cookies or ending the session can remove access before data expires. Account offers Create account to keep your data: conversion keeps the same farms, records, plans and conversations, using an email not already registered. Existing accounts cannot be merged. Guests may export or delete their own data without a password. Expired sessions cannot be revived; scheduled cleanup removes expired guest data from active storage. Sprout cannot create accounts, extend expiry or bypass limits. Never promise recovery of a lost guest session or instant erasure from backups or the model provider."
+    },
     {
       "id": "scope",
       "title": "What CropCompass and Sprout can do",

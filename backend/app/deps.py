@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.models import Farm, User, UserSession
 from app.security import as_utc, hash_token
+from app.services.guests import alive, lock_user
 
 SESSION_COOKIE = "af_session"
 CSRF_COOKIE = "af_csrf"
@@ -45,10 +46,16 @@ def current_session(request: Request, db: DbSession) -> UserSession:
     session = db.scalar(select(UserSession).where(UserSession.token_hash == hash_token(token)))
     if session is None or as_utc(session.expires_at) <= datetime.now(UTC):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Session expired, please sign in again")
+    user = alive(db.get(User, session.user_id))
     if request.method in UNSAFE_METHODS:
         sent = request.headers.get(CSRF_HEADER, "")
         if not hmac.compare_digest(sent.encode(), session.csrf_token.encode()):
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Missing or invalid CSRF token")
+        if user.is_guest and not request.url.path.endswith("/convert-guest"):
+            alive(lock_user(db, user.id))
+            session = db.get(UserSession, session.id, populate_existing=True)
+            if session is None or as_utc(session.expires_at) <= datetime.now(UTC):
+                raise HTTPException(401, "guest_expired")
     return session
 
 
@@ -56,10 +63,7 @@ CurrentSession = Annotated[UserSession, Depends(current_session)]
 
 
 def current_user(session: CurrentSession, db: DbSession) -> User:
-    user = db.get(User, session.user_id)
-    if user is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Not signed in")
-    return user
+    return alive(db.get(User, session.user_id))
 
 
 CurrentUser = Annotated[User, Depends(current_user)]

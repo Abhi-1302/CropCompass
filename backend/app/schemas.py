@@ -54,12 +54,19 @@ class AccountDeleteIn(BaseModel):
     password: AnyPassword
 
 
+class GuestDeleteIn(BaseModel):
+    confirm: bool = Field(strict=True)
+
+
 class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
-    email: str
+    email: str | None
     name: str
+    is_guest: bool
+    guest_expires_at: datetime | None
+    guest_expiring_soon: bool = False
 
 
 Longitude = Annotated[float, Field(ge=-180, le=180)]

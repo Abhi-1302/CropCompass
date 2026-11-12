@@ -9,6 +9,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 
 from app.deps import CurrentUser, DbSession, owned_farm
 from app.services.cropfit import farm_crop_fit
+from app.services.guests import advice_budget
 
 router = APIRouter(tags=["crops"])
 
@@ -29,9 +30,12 @@ def get_crop_fit(
     def check() -> None:
         if not request.app.state.limiters["advice"].hit(str(user.id)):
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many new simulations. Please wait a little.")
+        advice_budget(db, user, request.app.state.settings)
 
     try:
-        return farm_crop_fit(db, farm, season, irrigation or farm.irrigation, check)
+        result = farm_crop_fit(db, farm, season, irrigation or farm.irrigation, check)
+        db.commit()
+        return result
     except LookupError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except ValueError as exc:

@@ -48,7 +48,7 @@ export function NextCropSummary({ farm, onOpenPlan }: { farm: Farm; onOpenPlan: 
           {top.map((option) => (
             <li key={option.id} className="rounded-xl border border-stone-200 p-3">
               <p className="flex items-center gap-2 font-semibold text-stone-900">
-                <span className="flex size-6 items-center justify-center rounded-full bg-stone-900 text-xs text-white">
+                <span className="flex size-6 items-center justify-center rounded-full bg-stone-900 text-xs text-stone-50">
                   {option.rank}
                 </span>
                 {cropName(catalog, option.id)}

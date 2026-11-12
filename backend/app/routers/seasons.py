@@ -7,7 +7,7 @@ import uuid
 from fastapi import APIRouter, HTTPException, Response, status
 from sqlalchemy import func, select
 
-from app.deps import CurrentUser, DbSession, owned_farm
+from app.deps import CurrentUser, DbSession, SettingsDep, owned_farm
 from app.models import SeasonRecord
 from app.schemas import SeasonIn, SeasonOut, SeasonUpdate
 from app.services.seasons import SeasonError, normalize_season
@@ -26,9 +26,13 @@ def list_seasons(farm_id: uuid.UUID, db: DbSession, user: CurrentUser) -> list[S
 
 
 @router.post("", response_model=SeasonOut, status_code=status.HTTP_201_CREATED)
-def create_season(farm_id: uuid.UUID, body: SeasonIn, db: DbSession, user: CurrentUser) -> SeasonRecord:
+def create_season(
+    farm_id: uuid.UUID, body: SeasonIn, db: DbSession, user: CurrentUser, settings: SettingsDep
+) -> SeasonRecord:
     farm = owned_farm(db, user, farm_id)
     count = db.scalar(select(func.count()).select_from(SeasonRecord).where(SeasonRecord.farm_id == farm.id))
+    if user.is_guest and count >= settings.guest_max_seasons_per_farm:
+        raise HTTPException(409, "guest_season_limit")
     if count >= MAX_SEASONS_PER_FARM:
         raise HTTPException(status.HTTP_409_CONFLICT, f"A farm can hold up to {MAX_SEASONS_PER_FARM} seasons.")
     try:

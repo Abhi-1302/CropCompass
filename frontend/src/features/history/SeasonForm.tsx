@@ -158,7 +158,7 @@ export function SeasonForm({ farmId, isIndia, catalog, recordId, initial, onClos
                 onClick={() => set("status", status)}
                 className={cx(
                   "rounded-lg px-4 py-1.5 text-sm font-medium transition",
-                  draft.status === status ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+                  draft.status === status ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
                 )}
               >
                 {t(status === "harvested" ? "history.harvested" : "history.inField")}
@@ -257,7 +257,7 @@ export function SeasonForm({ farmId, isIndia, catalog, recordId, initial, onClos
                   onClick={() => set("problems", active ? draft.problems.filter((p) => p !== key) : [...draft.problems, key])}
                   className={cx(
                     "rounded-full px-3 py-1 text-xs font-medium ring-1 transition",
-                    active ? "bg-amber-50 text-amber-900 ring-amber-300" : "bg-white text-stone-600 ring-stone-200 hover:bg-stone-50",
+                    active ? "bg-amber-50 text-amber-900 ring-amber-300" : "bg-surface text-stone-600 ring-stone-200 hover:bg-stone-50",
                   )}
                 >
                   {problemName(catalog, key)}

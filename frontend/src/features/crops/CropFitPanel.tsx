@@ -301,7 +301,7 @@ export function CropFitPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistor
                   }}
                   className={cx(
                     "rounded-lg px-4 py-2 text-sm font-medium transition",
-                    activeSeason === key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+                    activeSeason === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
                   )}
                 >
                   {t(`history.seasonName.${key}`)}
