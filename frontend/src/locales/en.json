@@ -1,4 +1,30 @@
 {
+  "guestErrors": {
+    "guest_usage_limited": "Guest usage limit reached. Wait before retrying; shared service limits also apply.",
+    "guest_farm_limit": "Guest farm limit reached. Create an account to keep your data and add more farms.",
+    "guest_plan_limit": "Guest saved-plan limit reached. Remove an old plan or create an account.",
+    "guest_season_limit": "Guest journal limit reached. Existing records remain available to edit or export.",
+    "guest_expired": "Your guest session has ended or expired. Sign in if you created an account, or start a new guest session. Previous guest data is not automatically recovered.",
+    "guest_unavailable": "Guest access is unavailable right now. Existing users can still sign in.",
+    "guest_required": "Your account state changed. Reload the page before trying again.",
+    "guest_convert_or_logout": "Create an account from your guest Account page, or explicitly end the guest session before signing in to another account."
+  },
+  "guest": {
+    "continue": "Continue as guest",
+    "disclosure": "Guest data expires after {{days}} days of inactivity. Clearing cookies or ending this session can remove your access. Create an account to keep your data.",
+    "limits": "Up to {{farms}} farms and {{requests}} Sprout requests per day. Token, download and shared service limits also apply.",
+    "status": "Guest session · data expires {{date}} without further activity",
+    "keep": "Create account to keep your data",
+    "create": "Create my account",
+    "account": "Guest account. Your farms and conversations are private to this session.",
+    "convertNote": "Your farms, crop history, saved plans and conversations will stay with you. Use an email that is not already registered; existing accounts cannot be merged.",
+    "convertConfirm": "Create your account and keep this data? Any active Sprout response will stop and other sessions will need to sign in again.",
+    "end": "End guest session",
+    "endConfirm": "Ending this session can permanently remove your access to this guest data. It will not be merged into another account. Cancel to create an account or export first. End session?",
+    "delete": "Delete guest data",
+    "deleteNote": "Permanently delete this guest's farms, history, plans and conversations from the app. This cannot be undone.",
+    "requestError": "This guest action is unavailable or has reached a limit. Check your session, wait before retrying, or create an account to keep your data."
+  },
   "sprout": {
     "farmQuestion": "Summarize this farm and its current data.", "openFarm": "Open farm view", "year": "per year",
     "name": "Sprout", "open": "Open Sprout", "close": "Close Sprout",

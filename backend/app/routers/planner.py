@@ -5,13 +5,14 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.deps import CurrentUser, DbSession, owned_farm
 from app.models import ClimateCell, Farm, Plan
 from app.schemas import NextCropIn, PlanIn, PlanOut, RotationsIn, StressTestIn
 from app.services import planner
 from app.services.climate_cache import advice_weather_context
+from app.services.guests import advice_budget
 
 router = APIRouter(prefix="/farms/{farm_id}", tags=["planner"])
 
@@ -20,10 +21,11 @@ def _ready_farm(db: DbSession, user: CurrentUser, farm_id: uuid.UUID) -> Farm:
     return owned_farm(db, user, farm_id)
 
 
-def _limit(request: Request, user: CurrentUser):
+def _limit(request: Request, user: CurrentUser, db: DbSession):
     def check() -> None:
         if not request.app.state.limiters["advice"].hit(str(user.id)):
             raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "Too many new simulations. Please wait a little.")
+        advice_budget(db, user, request.app.state.settings)
 
     return check
 
@@ -45,21 +47,31 @@ def _weights(body) -> dict | None:
 def next_crop(farm_id: uuid.UUID, body: NextCropIn, request: Request, db: DbSession, user: CurrentUser) -> dict:
     farm = _ready_farm(db, user, farm_id)
     irrigation = body.irrigation or farm.irrigation
-    return _call(lambda: planner.next_crop(db, farm, body.season, irrigation, _weights(body), _limit(request, user)))
+    result = _call(
+        lambda: planner.next_crop(db, farm, body.season, irrigation, _weights(body), _limit(request, user, db))
+    )
+    db.commit()
+    return result
 
 
 @router.post("/advice/rotations")
 def rotations(farm_id: uuid.UUID, body: RotationsIn, request: Request, db: DbSession, user: CurrentUser) -> dict:
     farm = _ready_farm(db, user, farm_id)
     irrigation = body.irrigation or farm.irrigation
-    return _call(lambda: planner.rotations(db, farm, irrigation, _weights(body), body.residue, _limit(request, user)))
+    result = _call(
+        lambda: planner.rotations(db, farm, irrigation, _weights(body), body.residue, _limit(request, user, db))
+    )
+    db.commit()
+    return result
 
 
 @router.post("/advice/stress-test")
 def stress_test(farm_id: uuid.UUID, body: StressTestIn, request: Request, db: DbSession, user: CurrentUser) -> dict:
     farm = _ready_farm(db, user, farm_id)
     payload = {**body.model_dump(), "weights": _weights(body)}
-    return _call(lambda: planner.stress(db, farm, payload, _limit(request, user)))
+    result = _call(lambda: planner.stress(db, farm, payload, _limit(request, user, db)))
+    db.commit()
+    return result
 
 
 def _plan_view(db: DbSession, farm: Farm, plan: Plan) -> PlanOut:
@@ -93,8 +105,14 @@ def list_plans(farm_id: uuid.UUID, db: DbSession, user: CurrentUser) -> list[Pla
 @router.post("/plans", response_model=PlanOut, status_code=status.HTTP_201_CREATED)
 def save_plan(farm_id: uuid.UUID, body: PlanIn, request: Request, db: DbSession, user: CurrentUser) -> PlanOut:
     farm = _ready_farm(db, user, farm_id)
+    if (
+        user.is_guest
+        and db.scalar(select(func.count()).select_from(Plan).where(Plan.farm_id == farm.id))
+        >= request.app.state.settings.guest_max_plans_per_farm
+    ):
+        raise HTTPException(409, "guest_plan_limit")
     payload = {**body.model_dump(), "weights": _weights(body)}
-    return _plan_view(db, farm, _call(lambda: planner.save_plan(db, farm, payload, _limit(request, user))))
+    return _plan_view(db, farm, _call(lambda: planner.save_plan(db, farm, payload, _limit(request, user, db))))
 
 
 @router.delete("/plans/{plan_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -1,5 +1,7 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
+import type en from "../locales/en.json";
 
 function cx(...classes: (string | false | null | undefined)[]): string {
   return classes.filter(Boolean).join(" ");
@@ -102,9 +104,12 @@ const ALERT_TONES = {
 };
 
 export function Alert({ tone = "info", children }: { tone?: keyof typeof ALERT_TONES; children: ReactNode }) {
+  const { t, i18n } = useTranslation();
+  const message = typeof children === "string" && i18n.exists(`guestErrors.${children}`)
+    ? t(`guestErrors.${children as keyof typeof en.guestErrors}`) : children;
   return (
     <div role={tone === "error" ? "alert" : "status"} className={cx("rounded-xl border px-4 py-3 text-sm", ALERT_TONES[tone])}>
-      {children}
+      {message}
     </div>
   );
 }

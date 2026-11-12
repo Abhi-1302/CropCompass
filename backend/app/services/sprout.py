@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.config import Settings
 from app.models import ChatMessage, ChatRun, ChatThread, ChatUsageDaily, Farm, User, UserSession
 from app.security import as_utc
+from app.services import guests
 from app.sprout_schemas import ChatSendIn
 
 
@@ -72,10 +73,31 @@ def run_view(run: ChatRun) -> dict:
 def _reserve(db: Session, user_id: uuid.UUID, settings: Settings, tokens: int) -> None:
     day = datetime.now(UTC).date()
     insert = sqlite_insert if db.get_bind().dialect.name == "sqlite" else pg_insert
-    for scope, owner, requests_limit, token_limit in (
+    user = guests.alive(db.get(User, user_id))
+    scopes = [
         ("global", None, settings.sprout_global_daily_requests, settings.sprout_global_daily_tokens),
-        (f"user:{user_id}", user_id, settings.sprout_daily_requests, settings.sprout_daily_tokens),
-    ):
+        (
+            f"user:{user_id}",
+            user_id,
+            min(settings.sprout_daily_requests, settings.guest_sprout_daily_requests)
+            if user.is_guest
+            else settings.sprout_daily_requests,
+            min(settings.sprout_daily_tokens, settings.guest_sprout_daily_tokens)
+            if user.is_guest
+            else settings.sprout_daily_tokens,
+        ),
+    ]
+    if user.is_guest:
+        scopes.insert(
+            1,
+            (
+                "guest:global",
+                None,
+                settings.guest_sprout_global_daily_requests,
+                settings.guest_sprout_global_daily_tokens,
+            ),
+        )
+    for scope, owner, requests_limit, token_limit in scopes:
         db.execute(
             insert(ChatUsageDaily)
             .values(
@@ -104,10 +126,23 @@ def _reserve(db: Session, user_id: uuid.UUID, settings: Settings, tokens: int) -
         raise HTTPException(429, "sprout_busy")
 
 
-def begin_run(factory, user_id: uuid.UUID, thread_id: uuid.UUID, body: ChatSendIn, settings: Settings):
+def begin_run(
+    factory,
+    user_id: uuid.UUID,
+    thread_id: uuid.UUID,
+    body: ChatSendIn,
+    settings: Settings,
+    session_id: uuid.UUID | None = None,
+    network: str | None = None,
+):
     payload_hash = hashlib.sha256(body.model_dump_json().encode()).hexdigest()
     try:
         with factory() as db:
+            user = guests.alive(guests.lock_user(db, user_id))
+            if session_id is not None:
+                session = db.get(UserSession, session_id)
+                if session is None or session.user_id != user_id or as_utc(session.expires_at) <= datetime.now(UTC):
+                    raise HTTPException(401, "Session expired, please sign in again")
             thread = owned_thread(db, user_id, thread_id)
             existing = db.scalar(
                 select(ChatRun).where(
@@ -124,6 +159,10 @@ def begin_run(factory, user_id: uuid.UUID, thread_id: uuid.UUID, body: ChatSendI
                 raise HTTPException(409, "sprout_running")
             model_calls = 2 if body.intent is None or body.retry_run_id is not None else 1
             reservation = settings.sprout_context_chars * model_calls + settings.sprout_max_output_tokens + 1600
+            if user.is_guest:
+                if not network:
+                    raise HTTPException(503, "guest_unavailable")
+                guests.consume(db, "sprout_network", network, 86400, settings.guest_sprout_ip_daily_requests)
             _reserve(db, user_id, settings, reservation)
             changed = db.execute(
                 update(ChatThread)
@@ -183,6 +222,7 @@ def begin_run(factory, user_id: uuid.UUID, thread_id: uuid.UUID, body: ChatSendI
                 payload_hash=payload_hash,
                 model=settings.sprout_model,
                 reserved_tokens=reservation,
+                guest_budget_charged=user.is_guest,
                 lease_expires_at=datetime.now(UTC) + timedelta(seconds=settings.sprout_timeout_s * 2 + 60),
             )
             db.add(run)
@@ -194,6 +234,10 @@ def begin_run(factory, user_id: uuid.UUID, thread_id: uuid.UUID, body: ChatSendI
 
 def active_run(factory, user_id: uuid.UUID, session_id: uuid.UUID, run_id: uuid.UUID) -> bool:
     with factory() as db:
+        try:
+            guests.alive(db.get(User, user_id))
+        except HTTPException:
+            return False
         run = db.get(ChatRun, run_id)
         session = db.get(UserSession, session_id)
         if run is None or run.state != "running" or run.cancel_requested:
@@ -236,12 +280,17 @@ def finish_run(
     error_code=None,
 ):
     with factory() as db:
+        user = guests.lock_user(db, user_id)
+        if user is None:
+            return None
         run = db.scalar(select(ChatRun).where(ChatRun.id == run_id).with_for_update())
         if run is None or run.state != "running":
             return None
         thread = owned_thread(db, user_id, run.thread_id)
         if run.cancel_requested:
             state, content, error_code = "cancelled", None, "cancelled"
+        if user.is_guest and as_utc(user.guest_expires_at) <= datetime.now(UTC):
+            state, content, error_code = "cancelled", None, "guest_expired"
         run.state, run.error_code, run.finished_at = state, error_code, datetime.now(UTC)
         run.usage_tokens = usage
         result = None
@@ -280,7 +329,9 @@ def finish_run(
             db.execute(
                 update(ChatUsageDaily)
                 .where(
-                    ChatUsageDaily.scope.in_(["global", f"user:{user_id}"]),
+                    ChatUsageDaily.scope.in_(
+                        ["global", f"user:{user_id}"] + (["guest:global"] if run.guest_budget_charged else [])
+                    ),
                     ChatUsageDaily.day == as_utc(run.created_at).date(),
                 )
                 .values(tokens=ChatUsageDaily.tokens + adjustment)

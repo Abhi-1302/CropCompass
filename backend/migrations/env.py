@@ -10,7 +10,7 @@ from app.db import Base, make_engine
 
 config = context.config
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
 target_metadata = Base.metadata
 URL = get_settings().migration_database_url
@@ -32,9 +32,16 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     engine = make_engine(URL)
     with engine.connect() as connection:
+        if IS_SQLITE:
+            connection.exec_driver_sql("PRAGMA foreign_keys=OFF")
+            connection.commit()
         context.configure(connection=connection, target_metadata=target_metadata, render_as_batch=IS_SQLITE)
         with context.begin_transaction():
             context.run_migrations()
+            if IS_SQLITE and connection.exec_driver_sql("PRAGMA foreign_key_check").fetchone():
+                raise RuntimeError("Migration left invalid foreign keys")
+        if IS_SQLITE:
+            connection.exec_driver_sql("PRAGMA foreign_keys=ON")
     engine.dispose()
 
 
