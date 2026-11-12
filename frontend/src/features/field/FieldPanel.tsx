@@ -156,6 +156,7 @@ function CropCard({ pick, catalog, active, disabled, previewId, onPlace }: {
         onClick={onPlace}
         aria-pressed={active}
         aria-controls={previewId}
+        data-tour-id={pick.option?.rank === 1 ? "field-crops" : undefined}
         aria-label={`${t(active ? "field.previewing" : "field.tryMe")}: ${cropName(catalog, pick.id)}`}
         className={cx(
           "group flex w-full cursor-grab items-center gap-2 rounded-lg border px-3 py-2.5 text-left transition active:cursor-grabbing disabled:cursor-wait disabled:opacity-50",
@@ -467,7 +468,7 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
             </div>
           </fieldset>
           <div>
-            <label htmlFor={searchId} className="text-sm font-medium text-stone-800">{t("field.searchCrops")}</label>
+            <label htmlFor={searchId} data-tour-id="field-search" className="text-sm font-medium text-stone-800">{t("field.searchCrops")}</label>
             <div className="relative mt-1.5">
               <Search className="pointer-events-none absolute top-3 left-3 size-4 text-stone-500" aria-hidden="true" />
               <input id={searchId} type="search" value={search} onChange={(event) => setSearch(event.target.value)}

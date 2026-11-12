@@ -76,7 +76,12 @@ function identityChanged(client: QueryClient, user?: User) {
 export function useIdentitySync() {
   const client = useQueryClient();
   useEffect(() => {
-    const refresh = () => { resetIdentityRequests(); clearSproutPreferences(); client.clear(); void client.invalidateQueries(); };
+    const refresh = () => {
+      resetIdentityRequests();
+      clearSproutPreferences();
+      client.removeQueries({ predicate: (query) => query.queryKey[0] !== "me" });
+      void client.resetQueries({ queryKey: keys.me, exact: true });
+    };
     const storage = (event: StorageEvent) => { if (event.key === "cropcompass:identity") refresh(); };
     window.addEventListener("storage", storage);
     window.addEventListener("cropcompass:session-expired", refresh);

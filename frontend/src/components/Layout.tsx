@@ -8,6 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 import { Logo } from "./Logo";
 import { Alert, Button, PageSpinner } from "./ui";
 import { SproutProvider } from "../features/sprout/Sprout";
+import { TourButton, TourProvider } from "../features/tour/TourProvider";
 
 export function RequireAuth() {
   useIdentitySync();
@@ -43,21 +44,22 @@ export function Layout() {
     `rounded-lg px-3 py-1.5 font-medium ${isActive ? "bg-emerald-50 text-emerald-800" : "text-stone-600 hover:bg-stone-100"}`;
 
   return (
-    <SproutProvider><div className="flex min-h-dvh flex-col">
+    <TourProvider userId={me.data?.id ?? ""}><SproutProvider><div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-[1000] border-b border-stone-200 bg-surface/90 backdrop-blur">
         <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
           <Link to="/" aria-label={t("nav.farms")}>
             <Logo />
           </Link>
           <nav className="flex w-full min-w-0 flex-wrap items-center gap-1 text-sm sm:w-auto sm:gap-2">
-            <NavLink to="/" end className={link}>
+            <NavLink to="/" end className={link} data-tour-id="nav-farms">
               {t("nav.farms")}
             </NavLink>
-            <NavLink to="/account" className={link} title={me.data?.name}>
+            <NavLink to="/account" className={link} title={me.data?.name} data-tour-id="nav-account">
               {t("nav.account")}
             </NavLink>
             <LanguageSwitcher className="max-w-[6.5rem]" />
             <ThemeToggle />
+            <TourButton />
             <Button
               variant="ghost"
               size="sm"
@@ -85,6 +87,6 @@ export function Layout() {
         <Outlet />
       </main>
       <footer className="border-t border-stone-200 py-4 text-center text-xs text-stone-500">{t("app.footer")}</footer>
-    </div></SproutProvider>
+    </div></SproutProvider></TourProvider>
   );
 }

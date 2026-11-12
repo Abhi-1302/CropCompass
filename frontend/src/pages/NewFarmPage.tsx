@@ -138,7 +138,7 @@ export function NewFarmPage() {
             )}
           </Field>
 
-          <div className="space-y-3">
+          <div className="space-y-3" data-tour-id="new-farm-location">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <h2 className="text-sm font-medium text-stone-800">{t("newFarm.mapTitle")}</h2>
@@ -244,7 +244,7 @@ export function NewFarmPage() {
             ))}
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2" data-tour-id="new-farm-water">
             <Field label={t("newFarm.area")} hint={mode === "boundary" ? t("newFarm.areaFromDrawing") : undefined}>
               {(id) => (
                 <Input
@@ -274,7 +274,7 @@ export function NewFarmPage() {
           {(problem || create.error) && <Alert tone="error">{problem ?? create.error?.message}</Alert>}
 
           <div className="flex justify-end">
-            <Button type="submit" busy={create.isPending}>
+            <Button type="submit" busy={create.isPending} data-tour-id="new-farm-create">
               {t("newFarm.submit")}
             </Button>
           </div>

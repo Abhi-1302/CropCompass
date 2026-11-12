@@ -1,4 +1,24 @@
 {
+  "tour": {
+    "replay": "Take a tour", "gettingStarted": "Getting started", "farmTour": "Explore your farm",
+    "close": "Close tour", "skip": "Skip tour", "back": "Back", "next": "Next", "finish": "Finish",
+    "progress": "{{current}} of {{total}}", "waiting": "Waiting for this view...",
+    "unavailable": "This feature is not available in the current view yet. You can continue the tour or revisit it later.",
+    "farmsTitle": "Your farms, in one place", "farmsBody": "Each farm has its own location, crop history, soil and plans. Add a farm to begin; this tour never creates or changes your records.",
+    "locationTitle": "Locate your field", "locationBody": "Search for a place, drop a pin or draw your field. The location determines the weather grid and soil-map estimates.",
+    "waterTitle": "Choose your water supply", "waterBody": "Rain-fed, protective and full irrigation have different modelling assumptions. Choose what is actually available on your farm.",
+    "createTitle": "Create when you are ready", "createBody": "Creating the farm starts its environmental data setup. After this tour, review your entries and create it yourself. A farm tour will introduce the next steps.",
+    "readinessTitle": "Check the evidence first", "readinessBody": "These status labels show which weather, soil and satellite data are ready. Limited or assumed data affects confidence; a model result is not a guarantee.",
+    "climateTitle": "Understand your climate", "climateBody": "Climate & risk summarizes historical rainfall, dry spells and seasonal patterns. It helps compare risks, but is not a live weather forecast.",
+    "climatePendingBody": "Climate & risk becomes available once weather verification finishes. Other parts of the app may be available sooner, with their own confidence warnings.",
+    "soilTitle": "Make soil assumptions explicit", "soilBody": "Soil maps are estimates, and profile depth may be assumed. Use Edit soil for values you know; the tour will not enter or save any values.",
+    "historyTitle": "Record what grew here", "historyBody": "Crop history informs rotation constraints and modelled soil water. Add known crop dates and residue details. Satellite greenness cannot identify your crop for you.",
+    "previewTitle": "Try a crop without saving", "previewBody": "Try me previews a crop, with yield, water and historical failures. Search seasonal crops too. Check the analysis label: seasonal crop fit is not the same as advice to sow today.",
+    "previewPendingBody": "Field previews need suitable planning data and a supported crop pack. Return when data is ready; a missing recommendation is not a reason to invent one.",
+    "planTitle": "Choose priorities and plan", "planBody": "Plan ranks next crops and two-year rotations by income, water, soil and risk. Compare failures and assumptions, then explicitly save a choice. Changing a preview does not save a plan.",
+    "sproutTitle": "Ask Sprout for context", "sproutBody": "Sprout can explain your farm and selected options. Review AI privacy consent before sending. Answers can be wrong and usage limits apply; this tour sends no AI messages.",
+    "accountTitle": "Keep control of your data", "accountBody": "Your account includes export and account settings. Guests can create an account here to keep their data before their session expires."
+  },
   "guestErrors": {
     "guest_usage_limited": "Guest usage limit reached. Wait before retrying; shared service limits also apply.",
     "guest_farm_limit": "Guest farm limit reached. Create an account to keep your data and add more farms.",

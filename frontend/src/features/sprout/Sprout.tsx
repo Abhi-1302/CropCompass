@@ -77,7 +77,7 @@ export function SproutProvider({ children }: { children: ReactNode }) {
   return <SproutContext value={{ enabled, ask }}>
     <div className={enabled ? "sprout-shell" : undefined}>{children}</div>
     {enabled && <>
-      <button ref={launcher} type="button" className="sprout-launcher" hidden={open}
+      <button ref={launcher} type="button" className="sprout-launcher" hidden={open} data-tour-id="sprout-launcher"
         onClick={show} aria-label={t("sprout.open")} title={t("sprout.open")}
         aria-expanded={open} aria-controls="sprout-panel">
         <img src="/sprout.png" width="64" height="64" alt="" />

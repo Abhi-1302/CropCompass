@@ -312,7 +312,7 @@ export function SoilPanel({ farmId }: { farmId: string }) {
                 {t("soil.reset")}
               </Button>
             )}
-            <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+            <Button variant="secondary" size="sm" onClick={() => setEditing(true)} data-tour-id="soil-edit">
               {t("soil.edit")}
             </Button>
           </div>
