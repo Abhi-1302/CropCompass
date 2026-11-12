@@ -104,7 +104,7 @@ export function PlanPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistory: 
             onClick={() => setMode(key)}
             className={cx(
               "shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition",
-              mode === key ? "bg-white text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
+              mode === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
             )}
           >
             {t(`plan.mode.${key}`)}

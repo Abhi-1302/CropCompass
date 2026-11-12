@@ -6,7 +6,7 @@ import type { Catalog, DetectedSeason, Farm, SeasonRecord, VegetationView } from
 import { AXIS_STYLE, EChart, SPLIT_LINE } from "../../components/EChart";
 import { Alert, Badge, Button, Card, PageSpinner, SectionHeader, Spinner } from "../../components/ui";
 import { fullDate, percent } from "../../lib/format";
-import { catalogLabel, cropName, familyName, problemName } from "../crops/text";
+import { catalogLabel, cropName, familyName, problemName, type T } from "../crops/text";
 import { draftFromRecord, EMPTY_DRAFT, type SeasonDraft, SeasonForm } from "./SeasonForm";
 
 const ZOOM_YEARS = 6;
@@ -16,7 +16,7 @@ function cropNames(catalog: Catalog | undefined, ids: string[]): string {
   return ids.map((id) => cropName(catalog, id)).join(" + ");
 }
 
-function seasonLabel(t: ReturnType<typeof useTranslation>["t"], season: { season: DetectedSeason["season"]; season_year: number }) {
+function seasonLabel(t: T, season: { season: DetectedSeason["season"]; season_year: number }) {
   return `${t(`history.seasonName.${season.season}`)} ${season.season_year}`;
 }
 

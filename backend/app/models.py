@@ -36,13 +36,40 @@ def utcnow() -> datetime:
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = (
+        CheckConstraint(
+            "(is_guest AND email IS NULL AND password_hash IS NULL AND registered_at IS NULL "
+            "AND guest_last_active_at IS NOT NULL AND guest_expires_at IS NOT NULL "
+            "AND guest_expires_at > guest_last_active_at) OR "
+            "(NOT is_guest AND email IS NOT NULL AND password_hash IS NOT NULL AND registered_at IS NOT NULL "
+            "AND guest_last_active_at IS NULL AND guest_expires_at IS NULL)",
+            name="ck_user_identity",
+        ),
+        Index("ix_users_guest_expiry", "is_guest", "guest_expires_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(Uuid, primary_key=True, default=uuid.uuid4)
-    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
+    email: Mapped[str | None] = mapped_column(String(254), unique=True, index=True)
+    password_hash: Mapped[str | None] = mapped_column(String(255))
+    is_guest: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    guest_last_active_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    guest_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    registered_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True).evaluates_none(), server_default=text("CURRENT_TIMESTAMP")
+    )
     name: Mapped[str] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     last_login_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class GuestCounter(Base):
+    __tablename__ = "guest_counters"
+
+    action: Mapped[str] = mapped_column(String(32), primary_key=True)
+    scope: Mapped[str] = mapped_column(String(80), primary_key=True)
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True), primary_key=True)
+    count: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class UserSession(Base):
@@ -243,6 +270,7 @@ class ChatRun(Base):
     cancel_requested: Mapped[bool] = mapped_column(Boolean, default=False)
     model: Mapped[str] = mapped_column(String(100))
     reserved_tokens: Mapped[int] = mapped_column(Integer)
+    guest_budget_charged: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
     usage_tokens: Mapped[int | None] = mapped_column(Integer)
     error_code: Mapped[str | None] = mapped_column(String(32))
     lease_expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

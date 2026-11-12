@@ -18,6 +18,7 @@ from app.config import Settings
 from app.models import Farm, SeasonRecord, VegetationSeries
 from app.security import as_utc
 from app.services.farm_data import ClientFactory, default_http_client
+from app.services.guests import background_farm
 from engine.crops.catalog import season_for_peak, season_for_sowing
 from engine.ingest.modis import MAX_DATES_PER_REQUEST, ModisError, available_dates, fetch_ndvi
 from engine.vegetation.phenology import detect_seasons, smooth
@@ -78,7 +79,7 @@ def _fetch_chunk(lat: float, lon: float, chunk: list[str], client: httpx.Client)
 
 
 def _save(db: Session, row: VegetationSeries, ndvi: dict, status: str, total: int, error: str | None = None) -> bool:
-    if db.scalar(select(Farm.id).where(Farm.id == row.farm_id)) is None:
+    if background_farm(db, row.farm_id) is None:
         return False  # farm deleted while downloading
     row.ndvi, row.status, row.composites_total, row.error = dict(ndvi), status, total, error
     db.commit()
@@ -104,7 +105,7 @@ def build_vegetation(
 
 def _download(session_factory: sessionmaker, settings: Settings, farm_id: uuid.UUID, client_factory: ClientFactory):
     with session_factory() as db:
-        farm = db.get(Farm, farm_id)
+        farm = background_farm(db, farm_id)
         if farm is None:
             return
         row = db.get(VegetationSeries, farm_id)
@@ -114,6 +115,7 @@ def _download(session_factory: sessionmaker, settings: Settings, farm_id: uuid.U
             db.commit()
         ndvi = dict(row.ndvi or {})
         total = row.composites_total
+        db.commit()
         try:
             with client_factory(settings) as client:
                 available = available_dates(farm.lat, farm.lon, client)

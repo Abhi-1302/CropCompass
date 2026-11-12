@@ -6,7 +6,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
@@ -41,6 +41,29 @@ class Settings(BaseSettings):
     smtp_from: str = "CropCompass <no-reply@localhost>"
     smtp_starttls: bool = True
 
+    guest_enabled: bool = False
+    guest_proxy_verified: bool = False
+    guest_abuse_hmac_key: str | None = Field(default=None, repr=False)
+    guest_retention_days: int = Field(default=30, ge=1, le=90)
+    guest_warning_days: int = Field(default=7, ge=1, le=30)
+    guest_activity_interval_seconds: int = Field(default=900, ge=60, le=3600)
+    guest_max_farms: int = Field(default=3, ge=1, le=20)
+    guest_max_seasons_per_farm: int = Field(default=200, ge=1, le=1000)
+    guest_max_plans_per_farm: int = Field(default=50, ge=1, le=200)
+    guest_creations_per_ip_hour: int = Field(default=5, ge=1, le=100)
+    guest_creations_per_ip_day: int = Field(default=20, ge=1, le=500)
+    guest_creations_global_day: int = Field(default=100, ge=1, le=10000)
+    guest_max_identities: int = Field(default=1000, ge=1, le=10000)
+    guest_data_builds_hour: int = Field(default=2, ge=1, le=20)
+    guest_data_builds_day: int = Field(default=6, ge=1, le=100)
+    guest_data_builds_global_day: int = Field(default=50, ge=1, le=1000)
+    guest_advice_global_hour: int = Field(default=300, ge=1, le=10000)
+    guest_sprout_daily_requests: int = Field(default=6, ge=1, le=100)
+    guest_sprout_daily_tokens: int = Field(default=40000, ge=1, le=1000000)
+    guest_sprout_global_daily_requests: int = Field(default=30, ge=1, le=1000)
+    guest_sprout_global_daily_tokens: int = Field(default=80000, ge=1, le=1000000)
+    guest_sprout_ip_daily_requests: int = Field(default=20, ge=1, le=500)
+
     sprout_enabled: bool = False
     groq_api_key: str | None = Field(default=None, repr=False)
     sprout_model: str = "openai/gpt-oss-120b"
@@ -54,6 +77,26 @@ class Settings(BaseSettings):
     sprout_max_threads: int = Field(default=30, ge=1, le=100)
     sprout_max_turns: int = Field(default=100, ge=1, le=500)
     sprout_max_concurrent: int = Field(default=2, ge=1, le=5)
+
+    @property
+    def guest_ready(self) -> bool:
+        return bool(
+            self.guest_enabled
+            and len(self.guest_abuse_hmac_key or "") >= 32
+            and (not self.cookie_secure or self.guest_proxy_verified)
+        )
+
+    @model_validator(mode="after")
+    def _guest_policy(self):
+        if self.guest_warning_days > self.guest_retention_days:
+            raise ValueError("Guest warning must not exceed retention")
+        reservation = self.sprout_context_chars * 2 + self.sprout_max_output_tokens + 1600
+        if (
+            self.guest_enabled
+            and min(self.guest_sprout_daily_tokens, self.guest_sprout_global_daily_tokens) < reservation
+        ):
+            raise ValueError("Guest token budgets must cover a routed Sprout reservation")
+        return self
 
     @property
     def sprout_ready(self) -> bool:

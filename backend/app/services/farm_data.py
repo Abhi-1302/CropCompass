@@ -13,6 +13,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import Settings
 from app.models import Farm, SoilProfile
 from app.services.climate_cache import ensure_cell
+from app.services.guests import background_farm
 from engine.ingest.power import PowerError, snap_to_cell
 from engine.ingest.soilgrids import SoilGridsError, fetch_profile
 from engine.soil.ptf import summarize_profile
@@ -30,7 +31,7 @@ def default_http_client(settings: Settings) -> httpx.Client:
 
 def _set_status(session_factory: sessionmaker, farm_id: uuid.UUID, status: str, message: str | None) -> None:
     with session_factory() as db:
-        farm = db.get(Farm, farm_id)
+        farm = background_farm(db, farm_id)
         if farm is not None:
             farm.data_status, farm.data_error = status, message
             db.commit()
@@ -68,6 +69,8 @@ def _build_farm_data(
             if db.get(SoilProfile, farm.id) is None:
                 try:
                     layers = fetch_profile(farm.lat, farm.lon, client)
+                    if background_farm(db, farm_id) is None:
+                        return
                     db.add(
                         SoilProfile(
                             farm_id=farm.id, source="soilgrids", layers=layers, summary=summarize_profile(layers)

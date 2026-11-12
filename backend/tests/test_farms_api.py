@@ -28,11 +28,15 @@ def test_create_farm_builds_climate_and_soil(client, fake_sources):
     assert climate["period"]["n_years"] >= 30
     assert climate["assumptions"]["awc_source"] == "soilgrids"
     assert len(climate["monthly"]) == 12
+    assert all(row["wind_ms"] >= 0 for row in climate["monthly"])
     assert climate["monsoon"]["onset"]["p_by_jun_30"]["n"] == climate["period"]["n_years"]
     assert 0 <= climate["current_season"]["rain_percentile"] <= 1
 
     soil = client.get(f"/api/v1/farms/{farm['id']}/soil").json()
     assert soil["summary"]["topsoil"]["texture"] == "clay loam"
+
+    species = client.get("/api/v1/crops").json()["species"]
+    assert species["chickpea"]["root_m"] == 1.0 and species["pigeonpea"]["root_m"] == 1.5
     assert soil["summary"]["awc_mm"] > 0
     assert fake_sources == {"power": datetime.now(UTC).year - 1980, "soil": 1}
 
