@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import type { Farm } from "../api/types";
 import { useFarms } from "../api/hooks";
+import { SatelliteThumb } from "../components/SatelliteThumb";
 import { Alert, Badge, Card, PageSpinner } from "../components/ui";
 
 const STATUS_TONE = { pending: "amber", ready: "green", error: "red", limited: "amber" } as const;
@@ -15,20 +16,28 @@ function FarmCard({ farm }: { farm: Farm }) {
   const { t } = useTranslation();
   return (
     <Link to={`/farms/${farm.id}`} className="group block focus-visible:outline-none">
-      <Card className="h-full transition group-hover:border-emerald-300 group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-emerald-600">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="font-semibold text-stone-900">{farm.name}</h2>
-          <StatusBadge status={farm.data_status} />
+      <div className="h-full overflow-hidden rounded-2xl border border-stone-200 bg-surface shadow-sm transition group-hover:border-emerald-400/60 group-hover:shadow-md group-focus-visible:ring-2 group-focus-visible:ring-emerald-600">
+        <SatelliteThumb
+          lat={farm.lat}
+          lon={farm.lon}
+          boundary={farm.boundary}
+          label={t("farm.satelliteAlt", { name: farm.name })}
+          className="h-36 w-full"
+        />
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="min-w-0 break-words font-semibold text-stone-900">{farm.name}</h2>
+            <StatusBadge status={farm.data_status} />
+          </div>
+          <p className="tabular mt-1 text-sm text-stone-500">
+            {farm.lat.toFixed(3)}°, {farm.lon.toFixed(3)}°
+            {farm.area_ha != null && <> · {t("farms.hectares", { value: farm.area_ha })}</>}
+          </p>
+          <p className="mt-3 text-xs text-stone-500">
+            {t(farm.region ? "farms.regionIN" : "farms.regionNone")} · {t(`farms.irrigation.${farm.irrigation}`)}
+          </p>
         </div>
-        <p className="mt-1 text-sm text-stone-500">
-          {farm.lat.toFixed(3)}°, {farm.lon.toFixed(3)}°
-          {farm.area_ha != null && <> · {t("farms.hectares", { value: farm.area_ha })}</>}
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Badge tone={farm.region ? "green" : "sky"}>{t(farm.region ? "farms.regionIN" : "farms.regionNone")}</Badge>
-          <Badge>{t(`farms.irrigation.${farm.irrigation}`)}</Badge>
-        </div>
-      </Card>
+      </div>
     </Link>
   );
 }

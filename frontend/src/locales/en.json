@@ -109,6 +109,7 @@
   },
   "nav": { "farms": "My farms", "account": "Account", "language": "Language", "signOut": "Sign out" },
   "common": {
+    "aboutData": "About this data",
     "loading": "Loading…",
     "retry": "Try again",
     "back": "Back to my farms",
@@ -238,6 +239,9 @@
     "areaFromDrawing": "Filled in from the drawing; you can change it."
   },
   "farm": {
+    "sourceDates": "Dates",
+    "actions": "Farm actions",
+    "satelliteAlt": "Satellite view of {{name}}",
     "refresh": "Refresh data",
     "delete": "Delete farm",
     "confirmDelete": "Delete this farm and its data? This can't be undone.",
@@ -260,6 +264,29 @@
     "summarySoil": "Soil water today: {{pct}} full, {{compare}}."
   },
   "climate": {
+    "yearTitle": "Your farming year",
+    "yearSub": "Where rain covers crop water demand, and when each season is sown.",
+    "stripesTitle": "{{n}} years of rain at your field",
+    "stripesSub": "Each bar is one year: above the line was wetter than the median ({{median}}), below was drier.",
+    "stripesHint": "Point at a bar to see that year.",
+    "stripesLabel": "Yearly rain from {{first}} to {{last}} against the median of {{median}}.",
+    "stripesBelow": "Short of dependable rain ({{mm}})",
+    "vsMedian": "vs median",
+    "drier": "Drier",
+    "wetter": "Wetter",
+    "rollingMean": "9-year average",
+    "today": "Today",
+    "sowingWindows": "Sowing windows",
+    "sowWindow": "{{season}} sowing",
+    "legendSurplus": "Rain covers demand",
+    "legendHalf": "Covers half or more",
+    "legendDry": "Mostly dry",
+    "legendOnset": "Monsoon usually arrives {{date}}",
+    "howOften": "How often, out of 10 years",
+    "typicalDate": "Typical date",
+    "typicalLength": "Typical length",
+    "onsetBy30": "Monsoon arrives by 30 June",
+    "twoCrops": "Season long enough for two rain-fed crops (180+ days)",
     "thisSeason": "This season",
     "thisSeasonSub": "Compared with the same dates in {{n}} past years",
     "dataUntil": "NASA data up to {{date}}",
@@ -350,6 +377,29 @@
     "reference": "Modelled for a crop growing all year round."
   },
   "soil": {
+    "vis": {
+      "label": "Soil profile, {{depth}} m deep, {{texture}}, holding {{mm}} mm of water for crops when full.",
+      "horizon": {
+        "top": "Topsoil",
+        "sub": "Subsoil",
+        "deep": "Deep soil",
+        "deeper": "Deeper soil"
+      },
+      "range": "{{top}}–{{bottom}} cm",
+      "holds": "holds {{mm}}",
+      "water": "Water",
+      "waterNow": "{{mm}} of {{capacity}} mm now",
+      "capacity": "Holds up to {{mm}} mm",
+      "caption": "Each layer is drawn to scale. Finer dots mean finer texture. Together the layers hold {{perMetre}} mm of water per metre.",
+      "texture": "Topsoil texture",
+      "sand": "Sand {{pct}}%",
+      "silt": "Silt {{pct}}%",
+      "clay": "Clay {{pct}}%",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "yours": "Depth and soil values are the ones you entered."
+    },
     "depthAssumed": "Modelled depth (assumed, not measured)",
     "depthEntered": "Modelled depth (user-specified)",
     "depthUnknown": "Not known (use model assumption)",
@@ -502,6 +552,7 @@
     }
   },
   "crops": {
+    "fitCol": "Fit",
     "title": "{{season}} {{year}}: which crops fit this farm",
     "titlePlain": "Which crops fit this farm",
     "subtitle": "Every crop simulated on your soil with the weather of each past season, {{first}}–{{last}} ({{n}} seasons).",
@@ -573,6 +624,11 @@
     }
   },
   "plan": {
+    "rankedFor": "Ranked for:",
+    "prioritiesAdjust": "Adjust priorities",
+    "prioritiesDone": "Done",
+    "confidenceLabel": "Confidence",
+    "notRankedCount": "Crops not ranked ({{count}})",
     "priorities": "Your priorities",
     "prioritiesSub": "Advice is ranked by what matters to you: 0 = doesn't matter, 5 = matters most.",
     "pillar": { "income": "Income", "water": "Saving water", "soil": "Soil health", "risk": "Low risk" },
@@ -709,6 +765,32 @@
     "toLight": "Switch to light theme"
   },
   "field": {
+    "noTopHint": "Every ranked option fails too often from today's soil. Browse all crops below, or open Plan.",
+    "logIt": "Log it in Crop history →",
+    "noTopTitle": "No reliable crop this season",
+    "rainBelowShort": "Rain below normal",
+    "rainNormalShort": "Rain near normal",
+    "rainAboveShort": "Rain above normal",
+    "rainVsTypical": "{{mm}} vs {{median}} typical",
+    "soilShort": "{{mm}} water · {{depth}} m deep",
+    "assumed": "assumed",
+    "reportTitle": "{{crop}} report",
+    "brief": {
+      "good": "{{crop}} suits this field.",
+      "watch": "{{crop}} grows here, with some risk.",
+      "poor": "{{crop}} struggles in this field.",
+      "blocked": "{{crop}} is not advised here."
+    },
+    "briefLimitWater": "Water is the main limit: the soil dries out before harvest.",
+    "briefLimitHeat": "Heat at flowering is the main risk.",
+    "briefLimitNone": "No major limit showed up in the simulations.",
+    "briefDays": "{{min}}–{{max}} days to harvest",
+    "briefRoots": "roots to about {{value}} m",
+    "irrigationShort": {
+      "rainfed": "Rain-fed",
+      "protective": "Protective",
+      "full": "Full"
+    },
     "editSoil": "Edit soil details",
     "tryMe": "Try me",
     "previewing": "Previewing",
@@ -808,5 +890,122 @@
     "general": "(General guidance, not modelled.)",
     "helpNone": "No major change needed on current information.",
     "modelNote": "Simulated over {{n}} past seasons ({{first}}–{{last}}) with NASA POWER weather. These are scenario results, not forecasts."
+  },
+  "story": {
+    "group": {
+      "try": "Try crops",
+      "evidence": "The evidence",
+      "result": "Your plan",
+      "reference": "Reference"
+    },
+    "chapter": "Chapter {{n}}",
+    "evidenceStep": "Evidence {{n}} of {{total}}",
+    "feedsPlan": "Feeds your plan",
+    "takeaway": "What this means for your plan",
+    "nextChapter": "Next · chapter {{n}}",
+    "allEvidence": "That's all the evidence",
+    "toPlan": "See your season plan",
+    "skipToPlan": "Skip to the plan",
+    "startEvidence": "Next · the evidence",
+    "backToPlan": "Back to your season plan",
+    "openGuide": "Open the crop guide",
+    "openChapter": "Open chapter",
+    "fieldEndTitle": "Tried a few crops?",
+    "fieldEndText": "The next three chapters show the evidence behind every number here: the climate, the soil and what grew before. The plan then turns it into one recommendation.",
+    "planEndText": "Want the detail on a crop that didn't make the plan? The crop guide rates every crop for this field.",
+    "cropsEndText": "This guide covers every crop. The ones worth sowing this season are ranked in your season plan.",
+    "builtFrom": "Built from the evidence",
+    "planNode": "This plan",
+    "intro": {
+      "climate": {
+        "title": "How dependable is the rain here?",
+        "lead": "Decades of NASA weather at your field: when the rain comes, how often it fails, and the heat crops have to get through."
+      },
+      "soil": {
+        "title": "What does the ground hold?",
+        "lead": "How deep the soil is, how much water it stores for roots, and how full it is today. Every crop in the plan starts from this water."
+      },
+      "history": {
+        "title": "What grew here before?",
+        "lead": "Your recorded seasons and the satellite's greenness record. The plan checks each crop against them and starts from the soil water they left."
+      },
+      "plan": {
+        "title": "What should you sow next?",
+        "lead": "Our recommendation for this field, built from the climate, soil and crop history chapters and ranked by your priorities."
+      },
+      "crops": {
+        "title": "How does every crop fit this field?",
+        "lead": "A reference for the whole catalogue: yield, failed seasons, water and sowing dates for each crop, whether or not it made the plan."
+      }
+    },
+    "take": {
+      "rainBelow": "Rain since {{date}} is {{pct}} below typical, so the plan leans on water already stored in the soil.",
+      "rainAbove": "Rain since {{date}} is {{pct}} above typical, which gives the next crop a better start.",
+      "rainNormal": "Rain since {{date}} is close to typical.",
+      "heat": "Heat at rabi pod-fill comes {{odds}}. The yield model counts heat at flowering for every crop, so late-sown rabi crops score lower.",
+      "drySpell": "Dry spells of 14+ days hit {{odds}}. Each crop's failed-season odds already include them.",
+      "aridity": "Rain covers {{pct}} of the yearly crop water demand here ({{class}}).",
+      "soilNow": "The root zone is {{pct}} full today ({{mm}} of {{capacity}}). Every crop in the plan starts from this water.",
+      "soilHolds": "{{texture}} soil holding about {{awc}} of plant-available water over {{depth}} cm.",
+      "soilHoldsPlain": "The soil holds about {{awc}} of plant-available water over {{depth}} cm.",
+      "soilDefault": "This is a standard soil estimate. Entering your own soil test sharpens every number in the plan.",
+      "lastCrop": "Last recorded crop: {{crop}} ({{season}} {{year}}). The plan checks each crop against it for the same crop, the same family, shared pests and leftover nitrogen.",
+      "assumed": "No seasons recorded yet, so today's soil water assumes {{crop}} in {{season}} {{year}}. Logging your real crops makes the plan more accurate.",
+      "noRecords": "No seasons recorded yet. Logging your crops lets the plan check rotation rules.",
+      "soilFromHistory": "Recorded crops are replayed day by day to work out how much water is left in the soil today."
+    },
+    "trail": {
+      "since": "since {{date}}",
+      "typical": "typical",
+      "aridity": "Rain covers {{pct}} of demand",
+      "full": "{{pct}} full",
+      "noCrop": "Not recorded",
+      "rotation": "rotation checked",
+      "assumes": "Assumes {{crop}}",
+      "logIt": "Log seasons for rotation checks"
+    }
+  },
+  "briefing": {
+    "kicker": "Field briefing",
+    "assumes": "Assumes {{crop}} in {{season}} {{year}} · log it",
+    "below": "{{pct}} below",
+    "above": "{{pct}} above",
+    "typical": "typical ({{mm}})",
+    "outlook": "{{season}} {{year}} outlook",
+    "outlookPlain": "Next season outlook",
+    "bestBet": "Best bet",
+    "fails": "fails {{odds}}",
+    "hardSeason": "Every option fails often from today's soil. Open Plan for choices."
+  },
+  "report": {
+    "kicker": "Season plan",
+    "title": "{{season}} {{year}} plan",
+    "sub": "For {{farm}}, starting from today's soil and {{n}} past seasons of NASA weather ({{first}}–{{last}}).",
+    "print": "Print report",
+    "recTitle": "Recommendation",
+    "recSow": "Sow {{crop}}",
+    "recRisky": "Risky season: {{crop}} is the best of weak options",
+    "recNone": "No crop is reliable from today's soil",
+    "failed": "Failed seasons",
+    "compareTitle": "Compare the options",
+    "compareSub": "Profit per hectare from a bad year (10th percentile) to a good one (90th), with the typical value marked, and how often each crop failed.",
+    "profitRange": "Profit per ha: bad year … typical … good year",
+    "notAdvised": "None of these is advised; they are the least risky, shown for comparison.",
+    "timelineTitle": "Season timeline",
+    "timelineSub": "When each option would be sown and harvested.",
+    "sowWindow": "Sowing window",
+    "growing": "In the field",
+    "todayIs": "Today: {{date}}",
+    "checklistTitle": "Action checklist",
+    "checkSow": "Sow {{crop}} around {{date}} (window {{start}} – {{end}}).",
+    "checkWater": "Plan {{count}} irrigations, about {{mm}} in total.",
+    "checkRainfed": "Rain-fed: rain and stored soil water cover {{pct}} of the crop's need.",
+    "checkHarvest": "Expect harvest around {{date}}.",
+    "checkFallow": "Leave the field fallow this season to save soil water for the next crop.",
+    "checkIrrigate": "If you can irrigate, test Protective irrigation in Field view to see which crops become reliable.",
+    "checkOther": "Compare another season with the season switch above.",
+    "checkLog": "Log the season in Crop history, so the next advice starts from your real field.",
+    "detailsTitle": "Option details",
+    "detailsSub": "Full figures and reasons for each ranked crop, with save and Sprout buttons."
   }
 }
