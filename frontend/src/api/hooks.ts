@@ -414,8 +414,9 @@ export function useCropFit(id: string, season: CropSeason | undefined, irrigatio
 
 const ADVICE_STALE = 10 * 60_000;
 
-export function useNextCrop(id: string, season: CropSeason | undefined, irrigation: Irrigation, weights: Priorities) {
+export function useNextCrop(id: string, season: CropSeason | undefined, irrigation: Irrigation, weights: Priorities, enabled = true) {
   return useQuery({
+    enabled,
     queryKey: [...keys.advice(id), "next", season ?? "next", irrigation, weights] as const,
     queryFn: () =>
       api<NextCropAdvice>(`/farms/${id}/advice/next-crop`, { method: "POST", body: { season, irrigation, weights } }),

@@ -3,8 +3,9 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { useSavePriorities } from "../../api/hooks";
 import type { Farm, Irrigation, PillarKey, Priorities } from "../../api/types";
-import { Alert, Button, Card, cx, Field, SectionHeader, Select } from "../../components/ui";
+import { AboutData, Alert, Button, Field, SectionHeader, Segmented, Select } from "../../components/ui";
 import { NextCropView } from "./NextCropView";
+import type { StoryTab } from "../farm/Story";
 import { RotationsView } from "./RotationsView";
 import { SavedPlans } from "./SavedPlans";
 import { DEFAULT_PRIORITIES, PILLARS, useDebounced } from "./parts";
@@ -27,9 +28,25 @@ function PrioritiesCard({ farm, weights, onChange, irrigation, onIrrigation }: {
   const { t } = useTranslation();
   const save = useSavePriorities(farm.id);
   const stored = farm.priorities ?? DEFAULT_PRIORITIES;
+  const [open, setOpen] = useState(false);
   const set = (key: PillarKey, value: number) => onChange({ ...weights, [key]: value });
   return (
-    <Card>
+    <div className="rounded-2xl border border-stone-200 bg-surface">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5">
+        <p className="min-w-0 text-sm text-stone-600">
+          <span className="font-semibold text-stone-900">{t("plan.rankedFor")}</span>{" "}
+          {PILLARS.map((key) => (
+            <span key={key} className="mr-3 inline-flex items-center gap-1.5 whitespace-nowrap">
+              {t(`plan.pillar.${key}`)} <span className="tabular font-semibold text-emerald-700">{weights[key]}</span>
+            </span>
+          ))}
+          <span className="whitespace-nowrap">· {t(`farms.irrigation.${irrigation}`)}</span>
+        </p>
+        <Button size="sm" variant="secondary" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+          {t(open ? "plan.prioritiesDone" : "plan.prioritiesAdjust")}
+        </Button>
+      </div>
+      {open && <div className="border-t border-stone-200 p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title={t("plan.priorities")} subtitle={t("plan.prioritiesSub")} />
         <div className="w-56">
@@ -78,11 +95,12 @@ function PrioritiesCard({ farm, weights, onChange, irrigation, onIrrigation }: {
           <Alert tone="error">{save.error.message}</Alert>
         </div>
       )}
-    </Card>
+      </div>}
+    </div>
   );
 }
 
-export function PlanPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistory: () => void }) {
+export function PlanPanel({ farm, onOpenTab }: { farm: Farm; onOpenTab?: (tab: StoryTab) => void }) {
   const { t } = useTranslation();
   const [params, setParams] = useSearchParams();
   const mode = MODES.includes(params.get("mode") as Mode) ? params.get("mode") as Mode : "next";
@@ -94,31 +112,15 @@ export function PlanPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistory: 
   return (
     <div className="space-y-6">
       <PrioritiesCard farm={farm} weights={weights} onChange={setWeights} irrigation={irrigation} onIrrigation={setIrrigation} />
-      <div role="tablist" aria-label={t("farm.tabs.plan")} className="flex w-fit max-w-full overflow-x-auto rounded-lg bg-stone-100 p-1">
-        {MODES.map((key) => (
-          <button
-            key={key}
-            type="button"
-            role="tab"
-            aria-selected={mode === key}
-            onClick={() => setMode(key)}
-            className={cx(
-              "shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-medium transition",
-              mode === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
-            )}
-          >
-            {t(`plan.mode.${key}`)}
-          </button>
-        ))}
-      </div>
-      <div role="tabpanel">
+      <Segmented label={t("farm.tabs.plan")} value={mode} onChange={setMode} items={MODES.map((key) => ({ key, label: t(`plan.mode.${key}`) }))} />
+      <div>
         {mode === "next" && (
-          <NextCropView farm={farm} irrigation={irrigation} weights={applied} onOpenHistory={onOpenHistory} />
+          <NextCropView farm={farm} irrigation={irrigation} weights={applied} onOpenTab={onOpenTab} />
         )}
         {mode === "rotations" && <RotationsView farm={farm} irrigation={irrigation} weights={applied} />}
         {mode === "saved" && <SavedPlans farm={farm} />}
       </div>
-      <p className="text-xs leading-relaxed text-stone-500">{t("plan.disclaimer")}</p>
+      <AboutData><p>{t("plan.disclaimer")}</p></AboutData>
     </div>
   );
 }
