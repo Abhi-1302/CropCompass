@@ -46,7 +46,7 @@ export function Layout() {
   return (
     <TourProvider userId={me.data?.id ?? ""}><SproutProvider><div className="flex min-h-dvh flex-col">
       <header className="sticky top-0 z-[1000] border-b border-stone-200 bg-surface/90 backdrop-blur">
-        <div className="mx-auto flex min-h-16 max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-2">
+        <div className="flex min-h-16 w-full flex-wrap items-center justify-between gap-2 px-4 py-2 sm:px-6 lg:px-8">
           <Link to="/" aria-label={t("nav.farms")}>
             <Logo />
           </Link>
@@ -74,7 +74,7 @@ export function Layout() {
           </nav>
         </div>
       </header>
-      <main className="mx-auto w-full min-w-0 max-w-6xl flex-1 px-4 py-6 sm:py-8">
+      <main className="w-full min-w-0 flex-1 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
         {logout.error && <Alert tone="error">{logout.error.message}</Alert>}
         {me.data?.is_guest && (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-stone-200 pb-4 text-sm">

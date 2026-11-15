@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useTranslation } from "react-i18next";
 import type { SoilLayer } from "../../api/types";
 import { cx } from "../../components/ui";
@@ -8,9 +9,10 @@ import { VERDICT_TONE } from "./model";
 /** A to-scale cross-section of the field: sky and weather above, soil layers, root zone and soil water below. */
 
 const W = 800;
-const H = 400;
-const SURFACE = 124;
-const BOTTOM = 372;
+const H = 376;
+const SURFACE = 100;
+const BOTTOM = 352;
+const SHADES = ["var(--soil-1)", "var(--soil-2)", "var(--soil-3)", "var(--soil-4)"];
 const LEFT = 64;
 const RIGHT = 600; // annotations live to the right of this
 const PLANTS = 7;
@@ -61,7 +63,7 @@ function Roots({ x, bottom }: { x: number; bottom: number }) {
     return `M${x} ${y} q ${side * reach * 0.6} ${depth * 0.04} ${side * reach} ${depth * 0.12}`;
   });
   return (
-    <g className="field-roots stroke-amber-700" fill="none" strokeLinecap="round">
+    <g className="field-roots" stroke="var(--soil-ink)" strokeOpacity="0.8" fill="none" strokeLinecap="round">
       <path d={`M${x} ${SURFACE} C ${x - 3} ${SURFACE + depth * 0.4}, ${x + 3} ${SURFACE + depth * 0.7}, ${x} ${bottom}`} strokeWidth="1.6" />
       {branches.map((d) => (
         <path key={d} d={d} strokeWidth="1" opacity="0.8" />
@@ -72,7 +74,7 @@ function Roots({ x, bottom }: { x: number; bottom: number }) {
 
 function Sun({ hot }: { hot: boolean }) {
   return (
-    <g transform="translate(742 52)" className={hot ? "stroke-amber-500" : "stroke-stone-400"} strokeWidth="1.6" strokeLinecap="round">
+    <g transform="translate(742 44)" className={hot ? "stroke-amber-500" : "stroke-stone-400"} strokeWidth="1.6" strokeLinecap="round">
       <circle r={hot ? 15 : 12} className={hot ? "fill-amber-200" : "fill-stone-200"} />
       {hot && Array.from({ length: 8 }, (_, index) => {
         const angle = (index * Math.PI) / 4;
@@ -86,7 +88,7 @@ function Sun({ hot }: { hot: boolean }) {
 
 function Rain() {
   return (
-    <g transform="translate(650 26)" strokeLinecap="round">
+    <g transform="translate(650 18)" strokeLinecap="round">
       <path d="M0 22 a14 14 0 0 1 14 -14 a18 18 0 0 1 33 4 a11 11 0 0 1 1 22 h-44 a9 9 0 0 1 -4 -12z" className="fill-stone-200 stroke-stone-400" strokeWidth="1.2" />
       {[6, 18, 30, 42].map((x) => (
         <line key={x} x1={x} y1="42" x2={x - 5} y2="56" className="stroke-sky-500" strokeWidth="1.6" />
@@ -97,7 +99,7 @@ function Rain() {
 
 function Wind() {
   return (
-    <g transform="translate(640 34)" fill="none" className="stroke-stone-400" strokeWidth="1.6" strokeLinecap="round">
+    <g transform="translate(640 30)" fill="none" className="stroke-stone-400" strokeWidth="1.6" strokeLinecap="round">
       <path d="M0 6 h40 a7 7 0 1 0 -7 -7" />
       <path d="M8 20 h52 a7 7 0 1 1 -7 7" />
       <path d="M0 34 h30" />
@@ -107,6 +109,7 @@ function Wind() {
 
 export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, sky, crop, label }: Props) {
   const { t } = useTranslation();
+  const patternId = `soil-water-${useId().replace(/:/g, "")}`;
   const soilM = soilDepthCm / 100;
   const maxM = Math.min(2, Math.max(1, Math.ceil(Math.max(soilM, crop?.zone.rootM ?? 0) * 2 + 0.01) / 2));
   const y = (depthM: number) => SURFACE + (Math.min(depthM, maxM) / maxM) * (BOTTOM - SURFACE);
@@ -125,7 +128,7 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
       <rect x="0" y="0" width={W} height={SURFACE} className="fill-sky-50" />
       {sky?.windy && <Wind />}
       {sky?.wet && <Rain />}
-      {sky && !sky.wet && <Sun hot={sky.hot} />}
+      {sky?.hot && !sky.wet && <Sun hot />}
       {sky && (
         <text x="16" y="28" className="tabular fill-stone-600 text-[12px]">
           {[
@@ -139,35 +142,45 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
         </text>
       )}
 
-      <rect x="0" y={SURFACE} width={W} height={H - SURFACE} className="fill-amber-50" />
+      <rect x="0" y={SURFACE} width={RIGHT + 20} height={H - SURFACE} fill={SHADES[0]} />
       {bands.map((band, index) => (
         <rect
           key={band.range.join("-")}
           x="0"
           y={y(band.range[0])}
-          width={W}
+          width={RIGHT + 20}
           height={y(Math.min(band.range[1], soilM)) - y(band.range[0])}
-          className={index % 2 ? "fill-amber-100" : "fill-amber-50"}
+          fill={SHADES[Math.min(Math.floor(index / 2), SHADES.length - 1)]}
+          opacity={index % 2 ? 0.92 : 1}
         />
       ))}
       {soilM < maxM && (
         <g>
-          <rect x="0" y={soilBottom} width={W} height={H - soilBottom} className="fill-stone-100" />
-          <line x1="0" x2={RIGHT + 20} y1={soilBottom} y2={soilBottom} className="stroke-stone-400" strokeDasharray="4 4" />
-          <text x={LEFT + 8} y={Math.min(BOTTOM - 8, soilBottom + 20)} className="fill-stone-500 text-[11px]">
+          <rect x="0" y={soilBottom} width={RIGHT + 20} height={H - soilBottom} fill="var(--soil-below)" />
+          <line x1="0" x2={RIGHT + 20} y1={soilBottom} y2={soilBottom} className="stroke-stone-500" strokeDasharray="4 4" />
+          <text x={LEFT + 8} y={Math.min(BOTTOM - 8, soilBottom + 20)} className="fill-stone-600 text-[11px]">
             {t("field.restrictive")}
           </text>
         </g>
       )}
+      {/* Legend panel, kept off the soil so its text reads in both themes */}
+      <rect x={RIGHT + 20} y={SURFACE} width={W - RIGHT - 20} height={H - SURFACE} className="fill-stone-50" />
 
-      {/* Soil water in the root zone (modelled, not groundwater) */}
+      {/* Soil water in the root zone (modelled, not groundwater): blue stippling, denser when wetter */}
+      <defs>
+        <pattern id={patternId} width="9" height="9" patternUnits="userSpaceOnUse">
+          <circle cx="2.5" cy="2.5" r="1.25" className="fill-sky-300" />
+          <circle cx="7" cy="7" r="1.25" className="fill-sky-300" opacity={wet > 0.5 ? 1 : 0} />
+        </pattern>
+      </defs>
       <rect
         x="53"
         y={SURFACE}
         width={RIGHT + 20 - 53}
         height={wetZone - SURFACE}
-        className="fill-sky-500 transition-[opacity] duration-500"
-        opacity={0.06 + 0.3 * wet}
+        fill={`url(#${patternId})`}
+        className="transition-[opacity] duration-500"
+        opacity={0.25 + 0.6 * wet}
       />
 
       {/* Crop */}
@@ -179,7 +192,7 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
           {xs.map((x) => (
             <Plant key={`p${x}`} x={x} verdict={crop.verdict} wilted={crop.wilted} />
           ))}
-          <line x1={LEFT} x2={RIGHT} y1={y(crop.zone.effectiveM)} y2={y(crop.zone.effectiveM)} className="stroke-amber-700" strokeDasharray="5 4" />
+          <line x1={LEFT} x2={RIGHT} y1={y(crop.zone.effectiveM)} y2={y(crop.zone.effectiveM)} stroke="var(--soil-ink)" strokeOpacity="0.85" strokeDasharray="5 4" />
         </g>
       )}
 
@@ -187,21 +200,21 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
       <line x1="0" x2={W} y1={SURFACE} y2={SURFACE} className="stroke-stone-500" strokeWidth="1.5" />
 
       {/* Depth axis */}
-      <g className="fill-stone-500 text-[11px]">
-        <text x="12" y={SURFACE + 16} className="fill-stone-500">{t("field.depth")}</text>
+      <g className="text-[11px]" fill="var(--soil-ink-muted)">
+        <text x="12" y={SURFACE + 16}>{t("field.depth")}</text>
         {ticks.map((tick) => (
           <g key={tick}>
-            <line x1="44" x2="52" y1={y(tick)} y2={y(tick)} className="stroke-stone-400" />
-            <text x="40" y={tick === 0 ? y(tick) - 4 : y(tick) + 4} textAnchor="end" className="tabular">
+            <line x1="44" x2="52" y1={y(tick)} y2={y(tick)} stroke="var(--soil-ink-muted)" />
+            <text x="40" y={tick === 0 ? y(tick) - 4 : y(tick) + 4} textAnchor="end" className={cx("tabular", tick === 0 && "fill-stone-500")}>
               {tick.toFixed(1)} m
             </text>
           </g>
         ))}
-        <line x1="52" x2="52" y1={SURFACE} y2={BOTTOM} className="stroke-stone-400" />
+        <line x1="52" x2="52" y1={SURFACE} y2={BOTTOM} stroke="var(--soil-ink-muted)" />
       </g>
 
       {/* Annotations */}
-      <line x1={RIGHT + 20} x2={RIGHT + 20} y1={SURFACE} y2={soilBottom} className="stroke-stone-400" />
+      <line x1={RIGHT + 20} x2={RIGHT + 20} y1={SURFACE} y2={H} className="stroke-stone-300" />
       <foreignObject x={RIGHT + 30} y={SURFACE + 8} width={W - RIGHT - 40} height={BOTTOM - SURFACE - 8}>
         <div className="space-y-3 break-words text-xs leading-snug text-stone-600">
           {waterFraction != null && (
@@ -217,7 +230,7 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
             <p>{t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}</p>
           </div>
           {crop && (
-            <p className="font-semibold text-amber-700">
+            <p className="font-semibold text-stone-800">
               {crop.zone.limited
                 ? t("field.rootsLimited", { value: crop.zone.effectiveM.toFixed(1) })
                 : t("field.rootsLabel", { value: crop.zone.rootM.toFixed(1) })}

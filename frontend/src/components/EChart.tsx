@@ -39,6 +39,7 @@ const DARK_INKS: Record<string, string> = {
   "#a8a29e": "#56625c",
   "#e7e5e4": "#252e2a",
   "#047857": "#6cb592",
+  "#ffffff": "#141a18",
 };
 
 function forDark(value: unknown): unknown {

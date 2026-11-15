@@ -5,7 +5,8 @@ import { ApiError } from "../../api/client";
 import { useCatalog, useCropFit } from "../../api/hooks";
 import type { Catalog, CropFit, CropFitCrop, CropSeason, Farm, Irrigation } from "../../api/types";
 import { AXIS_STYLE, EChart, SPLIT_LINE } from "../../components/EChart";
-import { Alert, Badge, Button, Card, cx, Field, Metric, PageSpinner, SectionHeader, Select, Spinner } from "../../components/ui";
+import { ChevronDown } from "lucide-react";
+import { AboutData, Alert, cx, Field, Meter, PageSpinner, SectionHeader, Segmented, Select, Spinner } from "../../components/ui";
 import { fullDate, inTenYears, mm, monthDay, percent, signed } from "../../lib/format";
 import { catalogLabel, cropName, familyName, RULE_DOT, ruleText, yieldText } from "./text";
 
@@ -15,7 +16,6 @@ type SortKey = "reliable" | "yield" | "water" | "carbon";
 const SEASONS: CropSeason[] = ["kharif", "rabi", "summer"];
 const IRRIGATIONS: Irrigation[] = ["rainfed", "protective", "full"];
 const SORTS: SortKey[] = ["reliable", "yield", "water", "carbon"];
-const FIT_TONE = { good: "green", fair: "amber", poor: "red", blocked: "red" } as const;
 
 function fitOf(crop: CropFitCrop): Fit {
   if (crop.blocked) return "blocked";
@@ -142,7 +142,27 @@ function CropDetails({ crop, carbonYears }: { crop: CropFitCrop; carbonYears: nu
   );
 }
 
-function CropCard({ crop, catalog, irrigated, carbonYears, expanded, onToggle }: {
+/** Every simulated season as a hairline bar: green when the crop made at least half its attainable yield, amber when it failed. */
+function SeasonBars({ crop }: { crop: CropFitCrop }) {
+  const rows = crop.yield.by_year;
+  const top = Math.max(crop.yield.attainable ?? 0, ...rows.map((row) => row.kg_ha), 1);
+  const half = (crop.yield.attainable ?? top) / 2;
+  return (
+    <span className="flex h-6 w-28 items-end gap-px" aria-hidden="true">
+      {rows.map((row) => (
+        <span
+          key={row.year}
+          className={cx("min-h-px flex-1 rounded-[1px]", row.kg_ha < half ? "bg-amber-500" : "bg-emerald-500")}
+          style={{ height: `${Math.max(4, (row.kg_ha / top) * 100)}%` }}
+        />
+      ))}
+    </span>
+  );
+}
+
+const FIT_DOT = { good: "bg-emerald-500", fair: "bg-amber-500", poor: "bg-red-500", blocked: "bg-stone-400" } as const;
+
+function CropRow({ crop, catalog, irrigated, carbonYears, expanded, onToggle }: {
   crop: CropFitCrop;
   catalog?: Catalog;
   irrigated: boolean;
@@ -156,97 +176,128 @@ function CropCard({ crop, catalog, irrigated, carbonYears, expanded, onToggle }:
   const rawProduct = catalog?.agronomy?.[crop.id]?.product;
   const product = rawProduct ? catalogLabel("product", rawProduct, rawProduct) : undefined;
   const fit = fitOf(crop);
+  const failure = crop.yield.failure.p;
   const water =
     irrigated && crop.water.irrigations > 0
       ? t("crops.irrigationDetail", { count: crop.water.irrigations, amount: mm(crop.water.irrigation_mm) })
       : t("crops.waterDetail", { need: mm(crop.water.need_mm) });
+  const detailsId = `crop-${crop.id}-details`;
+  const cell = "px-4 py-3 align-top";
 
   return (
-    <Card className={cx(crop.blocked && "bg-stone-50")}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold text-stone-900">{cropName(catalog, crop.id)}</h3>
-          <div className="mt-1 flex flex-wrap items-center gap-2">
-            {family && <Badge>{family}</Badge>}
-            {product && <span className="text-xs text-stone-500">{t("crops.productNote", { product })}</span>}
-          </div>
-        </div>
-        <Badge tone={FIT_TONE[fit]}>{t(`crops.fit.${fit}`)}</Badge>
-      </div>
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 lg:grid-cols-4">
-        <Metric
-          label={t("crops.typicalYield")}
-          value={yieldText(t, crop.yield.p50)}
-          detail={t("crops.yieldRange", { low: yieldText(t, crop.yield.p10), high: yieldText(t, crop.yield.p90) })}
-        />
-        <Metric
-          label={t("crops.fails")}
-          value={inTenYears(crop.yield.failure)}
-          detail={t("crops.failsDetail", { value: yieldText(t, crop.yield.attainable) })}
-          warn={(crop.yield.failure.p ?? 0) > 0.3}
-        />
-        <Metric label={t("crops.waterMet")} value={percent(crop.water.met)} detail={water} />
-        <Metric
-          label={t("crops.sowing")}
-          value={monthDay(crop.sowing.median)}
-          detail={t("crops.windowDetail", {
-            start: monthDay(crop.sowing.window[0]),
-            end: monthDay(crop.sowing.window[1]),
-            harvest: monthDay(crop.harvest.median),
-          })}
-        />
-      </dl>
-      {crop.rules.length > 0 && (
-        <ul className="mt-4 space-y-1.5">
-          {crop.rules.map((rule, index) => (
-            <li key={`${rule.rule}-${index}`} className="flex items-start gap-2 text-sm text-stone-700">
-              <span className={cx("mt-1.5 size-2 shrink-0 rounded-full", RULE_DOT[rule.kind])} aria-hidden="true" />
-              {ruleText(t, rule, catalog)}
-            </li>
-          ))}
-        </ul>
+    <>
+      <tr className={cx("border-t border-stone-200", crop.blocked && "bg-stone-100/50", expanded && "bg-stone-100/40")}>
+        <th scope="row" className={cx(cell, "text-left font-normal")}>
+          <button type="button" onClick={onToggle} aria-expanded={expanded} aria-controls={detailsId} className="text-left">
+            <span className="block font-semibold text-stone-900 hover:text-emerald-700">{cropName(catalog, crop.id)}</span>
+            <span className="block text-xs text-stone-500">
+              {[family, product && t("crops.productNote", { product })].filter(Boolean).join(" · ")}
+            </span>
+          </button>
+          {crop.rules[0] && (
+            <p className="mt-1 flex max-w-xs items-start gap-1.5 text-xs text-stone-600">
+              <span className={cx("mt-1 size-1.5 shrink-0 rounded-full", RULE_DOT[crop.rules[0].kind])} aria-hidden="true" />
+              <span className="line-clamp-2">{ruleText(t, crop.rules[0], catalog)}</span>
+            </p>
+          )}
+        </th>
+        <td className={cell}>
+          <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm text-stone-800">
+            <span className={cx("size-2 rounded-full", FIT_DOT[fit])} aria-hidden="true" />
+            {t(`crops.fit.${fit}`)}
+          </span>
+        </td>
+        <td className={cell}>
+          <p className="tabular font-semibold text-stone-900">{yieldText(t, crop.yield.p50)}</p>
+          <p className="tabular text-xs text-stone-500">{yieldText(t, crop.yield.p10)} – {yieldText(t, crop.yield.p90)}</p>
+        </td>
+        <td className={cell}>
+          <SeasonBars crop={crop} />
+          <p className={cx("mt-1 whitespace-nowrap text-xs", (failure ?? 0) > 0.3 ? "font-medium text-amber-700" : "text-stone-600")}>{inTenYears(crop.yield.failure)}</p>
+        </td>
+        <td className={cell}>
+          <Meter value={crop.water.met} className="w-20" />
+          <p className="tabular mt-1 text-xs text-stone-600">{percent(crop.water.met)}</p>
+        </td>
+        <td className={cell}>
+          <p className="tabular whitespace-nowrap font-medium text-stone-900">{monthDay(crop.sowing.median)}</p>
+          <p className="tabular whitespace-nowrap text-xs text-stone-500">{monthDay(crop.sowing.window[0])} – {monthDay(crop.sowing.window[1])}</p>
+        </td>
+        <td className={cx(cell, "text-right")}>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-expanded={expanded}
+            aria-controls={detailsId}
+            aria-label={t(expanded ? "crops.hideDetails" : "crops.showDetails")}
+            title={t(expanded ? "crops.hideDetails" : "crops.showDetails")}
+            className="rounded-md p-1 text-stone-500 hover:bg-stone-100 hover:text-stone-900"
+          >
+            <ChevronDown className={cx("size-4 transition-transform", expanded && "rotate-180")} aria-hidden="true" />
+          </button>
+        </td>
+      </tr>
+      {expanded && (
+        <tr id={detailsId} className="bg-stone-100/40">
+          <td colSpan={7} className="px-4 pb-5">
+            <dl className="grid gap-4 border-t border-stone-200 pt-4 text-sm sm:grid-cols-3">
+              <div>
+                <dt className="text-xs font-medium text-stone-500">{t("crops.fails")}</dt>
+                <dd className="mt-0.5 text-stone-800">{t("crops.failsDetail", { value: yieldText(t, crop.yield.attainable) })}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-stone-500">{t("crops.waterMet")}</dt>
+                <dd className="mt-0.5 text-stone-800">{water}</dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-stone-500">{t("crops.sowing")}</dt>
+                <dd className="mt-0.5 text-stone-800">
+                  {t("crops.windowDetail", {
+                    start: monthDay(crop.sowing.window[0]),
+                    end: monthDay(crop.sowing.window[1]),
+                    harvest: monthDay(crop.harvest.median),
+                  })}
+                </dd>
+              </div>
+            </dl>
+            {crop.rules.length > 1 && (
+              <ul className="mt-4 space-y-1.5">
+                {crop.rules.slice(1).map((rule, index) => (
+                  <li key={`${rule.rule}-${index}`} className="flex items-start gap-2 text-sm text-stone-700">
+                    <span className={cx("mt-1.5 size-2 shrink-0 rounded-full", RULE_DOT[rule.kind])} aria-hidden="true" />
+                    {ruleText(t, rule, catalog)}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <CropDetails crop={crop} carbonYears={carbonYears} />
+          </td>
+        </tr>
       )}
-      <div className="mt-3 -ml-3">
-        <Button size="sm" variant="ghost" aria-expanded={expanded} onClick={onToggle}>
-          {t(expanded ? "crops.hideDetails" : "crops.showDetails")}
-        </Button>
-      </div>
-      {expanded && <CropDetails crop={crop} carbonYears={carbonYears} />}
-    </Card>
+    </>
   );
 }
 
-function Context({ data, catalog, onOpenHistory }: { data: CropFit; catalog?: Catalog; onOpenHistory: () => void }) {
+function PreviousLine({ data, catalog, onOpenHistory }: { data: CropFit; catalog?: Catalog; onOpenHistory: () => void }) {
   const { t } = useTranslation();
   const previous = data.previous;
   return (
-    <div className="mt-5 space-y-1.5 border-t border-stone-100 pt-4 text-sm text-stone-600">
+    <p>
       {previous ? (
-        <p>
-          {t("crops.after", {
-            crops: previous.crops.map((id) => cropName(catalog, id)).join(" + "),
-            state: t(previous.harvested ? "crops.harvestedOn" : "crops.expectedOn"),
-            date: fullDate(previous.end_date),
-          })}
-        </p>
+        t("crops.after", {
+          crops: previous.crops.map((id) => cropName(catalog, id)).join(" + "),
+          state: t(previous.harvested ? "crops.harvestedOn" : "crops.expectedOn"),
+          date: fullDate(previous.end_date),
+        })
       ) : (
-        <p>
+        <>
           {t("crops.noHistory")}{" "}
           <button type="button" className="font-medium text-emerald-700 underline" onClick={onOpenHistory}>
             {t("crops.openHistory")}
           </button>
-        </p>
+        </>
       )}
-      <p>
-        {t("crops.soilNote", {
-          awc: data.soil.awc_mm,
-          source: t(`soil.source.${data.soil.source}`),
-        })}
-      </p>
-      {data.carbon && (
-        <p>{t(data.carbon.baseline_source === "journal" ? "crops.carbonBaselineJournal" : "crops.carbonBaselineDefault")}</p>
-      )}
-    </div>
+    </p>
   );
 }
 
@@ -264,52 +315,36 @@ export function CropFitPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistor
 
   return (
     <div className="space-y-6">
-      <Card>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <SectionHeader
-            title={
-              data
-                ? t("crops.title", { season: t(`history.seasonName.${data.season}`), year: data.season_year })
-                : t("crops.titlePlain")
-            }
-            subtitle={
-              data
-                ? t("crops.subtitle", { first: data.period.first_year, last: data.period.last_year, n: data.period.n_years })
-                : undefined
-            }
-          />
-          {fit.isFetching && (
+      <section>
+        <SectionHeader
+          title={
+            data
+              ? t("crops.title", { season: t(`history.seasonName.${data.season}`), year: data.season_year })
+              : t("crops.titlePlain")
+          }
+          subtitle={
+            data
+              ? t("crops.subtitle", { first: data.period.first_year, last: data.period.last_year, n: data.period.n_years })
+              : undefined
+          }
+          action={fit.isFetching ? (
             <span className="flex items-center gap-2 text-sm text-stone-500">
               <Spinner className="size-4" />
               {t("crops.updating")}
             </span>
-          )}
-        </div>
+          ) : undefined}
+        />
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <p className="mb-1.5 text-sm font-medium text-stone-800">{t("crops.season")}</p>
-            <div role="radiogroup" aria-label={t("crops.season")} className="inline-flex rounded-xl bg-stone-100 p-1">
-              {SEASONS.map((key) => (
-                <button
-                  key={key}
-                  type="button"
-                  role="radio"
-                  aria-checked={activeSeason === key}
-                  onClick={() => {
-                    setSeason(key);
-                    setOpen(null);
-                  }}
-                  className={cx(
-                    "rounded-lg px-4 py-2 text-sm font-medium transition",
-                    activeSeason === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
-                  )}
-                >
-                  {t(`history.seasonName.${key}`)}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              label={t("crops.season")}
+              value={activeSeason}
+              onChange={(key) => { setSeason(key); setOpen(null); }}
+              items={SEASONS.map((key) => ({ key, label: t(`history.seasonName.${key}`) }))}
+            />
           </div>
-          <div className="w-56">
+          <div className="w-52">
             <Field label={t("crops.water")}>
               {(id) => (
                 <Select id={id} value={irrigation} onChange={(event) => setIrrigation(event.target.value as Irrigation)}>
@@ -322,7 +357,7 @@ export function CropFitPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistor
               )}
             </Field>
           </div>
-          <div className="w-64">
+          <div className="w-56">
             <Field label={t("crops.sort")}>
               {(id) => (
                 <Select id={id} value={sort} onChange={(event) => setSort(event.target.value as SortKey)}>
@@ -336,29 +371,48 @@ export function CropFitPanel({ farm, onOpenHistory }: { farm: Farm; onOpenHistor
             </Field>
           </div>
         </div>
-        {data && <Context data={data} catalog={catalog.data} onOpenHistory={onOpenHistory} />}
-      </Card>
+      </section>
 
       {fit.isPending && <PageSpinner />}
       {fit.isError && (
         <Alert tone={fit.error instanceof ApiError && fit.error.status === 409 ? "info" : "error"}>{fit.error.message}</Alert>
       )}
       {data && (
-        <div className={cx("space-y-4 transition-opacity", fit.isPlaceholderData && "opacity-60")}>
-          {crops.map((crop) => (
-            <CropCard
-              key={crop.id}
-              crop={crop}
-              catalog={catalog.data}
-              irrigated={data.irrigation !== "rainfed"}
-              carbonYears={data.carbon?.years ?? 10}
-              expanded={open === crop.id}
-              onToggle={() => setOpen(open === crop.id ? null : crop.id)}
-            />
-          ))}
+        <div className={cx("overflow-x-auto rounded-2xl border border-stone-200 bg-surface transition-opacity", fit.isPlaceholderData && "opacity-60")}>
+          <table className="w-full min-w-[46rem] text-left text-sm">
+            <thead className="text-xs text-stone-500">
+              <tr>
+                <th scope="col" className="px-4 py-3 font-medium">{t("plan.crop")}</th>
+                <th scope="col" className="px-4 py-3 font-medium">{t("crops.fitCol")}</th>
+                <th scope="col" className="px-4 py-3 font-medium">{t("crops.typicalYield")}</th>
+                <th scope="col" className="px-4 py-3 font-medium">{t("crops.fails")}</th>
+                <th scope="col" className="px-4 py-3 font-medium">{t("crops.waterMet")}</th>
+                <th scope="col" className="px-4 py-3 font-medium">{t("crops.sowing")}</th>
+                <th scope="col" className="w-10 px-4 py-3"><span className="sr-only">{t("crops.showDetails")}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {crops.map((crop) => (
+                <CropRow
+                  key={crop.id}
+                  crop={crop}
+                  catalog={catalog.data}
+                  irrigated={data.irrigation !== "rainfed"}
+                  carbonYears={data.carbon?.years ?? 10}
+                  expanded={open === crop.id}
+                  onToggle={() => setOpen(open === crop.id ? null : crop.id)}
+                />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-      <p className="text-xs leading-relaxed text-stone-500">{t("crops.method")}</p>
+      <AboutData>
+        {data && <PreviousLine data={data} catalog={catalog.data} onOpenHistory={onOpenHistory} />}
+        {data && <p>{t("crops.soilNote", { awc: data.soil.awc_mm, source: t(`soil.source.${data.soil.source}`) })}</p>}
+        {data?.carbon && <p>{t(data.carbon.baseline_source === "journal" ? "crops.carbonBaselineJournal" : "crops.carbonBaselineDefault")}</p>}
+        <p>{t("crops.method")}</p>
+      </AboutData>
     </div>
   );
 }
