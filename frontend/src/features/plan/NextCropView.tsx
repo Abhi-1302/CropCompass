@@ -3,11 +3,12 @@ import { useTranslation } from "react-i18next";
 import { ApiError } from "../../api/client";
 import { useCatalog, useNextCrop, useSavePlan, useStressTest } from "../../api/hooks";
 import type { Catalog, CropSeason, Farm, Irrigation, NextCropAdvice, NextCropOption, NextCropStress, Priorities } from "../../api/types";
-import { Alert, Badge, Button, Card, cx, Metric, PageSpinner, SectionHeader, Spinner } from "../../components/ui";
-import { fullDate, inTenYears, mm, monthDay, money, percent } from "../../lib/format";
+import { Alert, Badge, Button, Card, cx, Metric, PageSpinner, SectionHeader, Segmented, Spinner } from "../../components/ui";
+import { fullDate, inTenYears, monthDay, money, percent } from "../../lib/format";
 import { cropName, familyName, yieldText } from "../crops/text";
-import { SoilNowNote } from "../climate/SoilNowNote";
-import { ConfidenceNote, PillarBars, PricesCard, ReasonList, StressTable } from "./parts";
+import { PillarBars, PricesCard, ReasonList, StressTable } from "./parts";
+import { PlanReport } from "./PlanReport";
+import type { StoryTab } from "../farm/Story";
 import { AskSprout } from "../sprout/Sprout";
 
 const SEASONS: CropSeason[] = ["kharif", "rabi", "summer"];
@@ -98,11 +99,11 @@ function OptionCard({ option, advice, catalog, onSave, saving, saved, farmId }: 
   );
 }
 
-export function NextCropView({ farm, irrigation, weights, onOpenHistory }: {
+export function NextCropView({ farm, irrigation, weights, onOpenTab }: {
   farm: Farm;
+  onOpenTab?: (tab: StoryTab) => void;
   irrigation: Irrigation;
   weights: Priorities;
-  onOpenHistory: () => void;
 }) {
   const { t } = useTranslation();
   const [season, setSeason] = useState<CropSeason | undefined>();
@@ -113,49 +114,41 @@ export function NextCropView({ farm, irrigation, weights, onOpenHistory }: {
   const catalog = useCatalog().data;
   const data = advice.isError ? undefined : advice.data;
   const activeSeason = season ?? data?.season;
+  const seasonControl = (
+    <Segmented
+      label={t("crops.season")}
+      value={activeSeason}
+      onChange={(key) => { setSeason(key); stress.reset(); }}
+      items={SEASONS.map((key) => ({ key, label: t(`history.seasonName.${key}`) }))}
+    />
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <div role="radiogroup" aria-label={t("crops.season")} className="inline-flex rounded-xl bg-stone-100 p-1">
-          {SEASONS.map((key) => (
-            <button
-              key={key}
-              type="button"
-              role="radio"
-              aria-checked={activeSeason === key}
-              onClick={() => {
-                setSeason(key);
-                stress.reset();
-              }}
-              className={cx(
-                "rounded-lg px-4 py-2 text-sm font-medium transition",
-                activeSeason === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900",
-              )}
-            >
-              {t(`history.seasonName.${key}`)}
-            </button>
-          ))}
+      {(!data || advice.isFetching) && (
+        <div className="flex flex-wrap items-center gap-3">
+          {!data && seasonControl}
+          {advice.isFetching && (
+            <span className="flex items-center gap-2 text-sm text-stone-500">
+              <Spinner className="size-4" />
+              {t("plan.updating")}
+            </span>
+          )}
         </div>
-        {advice.isFetching && (
-          <span className="flex items-center gap-2 text-sm text-stone-500">
-            <Spinner className="size-4" />
-            {t("plan.updating")}
-          </span>
-        )}
-      </div>
+      )}
 
       {advice.isPending && <PageSpinner />}
       {advice.isError && (
         <Alert tone={advice.error instanceof ApiError && advice.error.status === 409 ? "info" : "error"}>{advice.error.message}</Alert>
       )}
-      {data && <AdviceBody data={data} catalog={catalog} onOpenHistory={onOpenHistory} />}
-      {data && data.options.length === 0 && <Alert tone="warning">{t("plan.noOptions")}</Alert>}
-      {data && (data.options[0]?.yield.failure.p ?? 0) >= 0.5 && (
-        <Alert tone="warning">{t("plan.hardSeason", { odds: inTenYears(data.options[0].yield.failure) })}</Alert>
+      {data && (
+        <div className={cx("transition-opacity", advice.isPlaceholderData && "opacity-60")}>
+          <PlanReport farmId={farm.id} data={data} catalog={catalog} farmName={farm.name} weights={weights} seasonControl={seasonControl} onOpenTab={onOpenTab} />
+        </div>
       )}
       {data && data.options.length > 0 && (
-        <div className={cx("space-y-4 transition-opacity", advice.isPlaceholderData && "opacity-60")}>
+        <div className={cx("no-print space-y-4 transition-opacity", advice.isPlaceholderData && "opacity-60")}>
+          <SectionHeader title={t("report.detailsTitle")} subtitle={t("report.detailsSub")} />
           {data.options.map((option) => (
             <OptionCard
               key={option.id}
@@ -197,67 +190,6 @@ export function NextCropView({ farm, irrigation, weights, onOpenHistory }: {
         </div>
       )}
     </div>
-  );
-}
-
-function AdviceBody({ data, catalog, onOpenHistory }: { data: NextCropAdvice; catalog?: Catalog; onOpenHistory: () => void }) {
-  const { t } = useTranslation();
-  const soil = data.soil_now;
-  const compare =
-    soil.percentile < 0.5
-      ? t("plan.drierThan", { pct: percent(1 - soil.percentile) })
-      : t("plan.wetterThan", { pct: percent(soil.percentile) });
-  return (
-    <Card>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeader
-          title={t("plan.nextTitle", { season: t(`history.seasonName.${data.season}`), year: data.season_year })}
-          subtitle={t(data.weather_context.mode === "historical_proxy" ? "quality.scenarioSub" : "plan.nextSub", { n: data.period.n_years, first: data.period.first_year, last: data.period.last_year })}
-        />
-        <Badge tone="sky">{t(data.weather_context.mode === "historical_proxy" ? "quality.scenarioUntil" : "plan.dataUntil", { date: fullDate(data.as_of) })}</Badge>
-      </div>
-      <dl className="grid gap-4 sm:grid-cols-2">
-        <Metric
-          label={t(data.weather_context.mode === "historical_proxy" ? "quality.scenarioSoil" : "plan.soilNow")}
-          value={t("plan.soilNowValue", { mm: mm(soil.mm), pct: percent(soil.fraction) })}
-          detail={t("plan.soilNowDetail", { typical: mm(soil.typical_mm), compare })}
-          warn={soil.percentile < 0.2}
-        />
-        <Metric
-          label={t("plan.earliest")}
-          value={fullDate(data.earliest_sowing)}
-          detail={
-            data.in_field
-              ? t("plan.inField", { crop: cropName(catalog, data.in_field.crop), date: fullDate(data.in_field.expected_harvest) })
-              : undefined
-          }
-        />
-      </dl>
-      {!data.in_field && (
-        <div className="mt-4">
-          <SoilNowNote soil={soil} onOpenHistory={onOpenHistory} />
-        </div>
-      )}
-      {data.excluded.length > 0 && (
-        <p className="mt-4 text-sm text-stone-600">
-          {t("plan.excluded", { crops: data.excluded.map((item) => cropName(catalog, item.id)).join(", ") })}
-        </p>
-      )}
-      {data.unsuitable.length > 0 && (
-        <p className="mt-2 text-sm text-stone-600">
-          {t("plan.unsuitable", { crops: data.unsuitable.map((item) => cropName(catalog, item.id)).join(", ") })}
-        </p>
-      )}
-      {data.blocked.length > 0 && (
-        <p className="mt-2 text-sm text-stone-600">
-          <span className="font-medium">{t("plan.blockedTitle")}: </span>
-          {data.blocked.map((item) => cropName(catalog, item.id)).join(", ")}
-        </p>
-      )}
-      <div className="mt-4">
-        <ConfidenceNote confidence={data.confidence} />
-      </div>
-    </Card>
   );
 }
 
