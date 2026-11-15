@@ -1,4 +1,10 @@
 {
+  "farmJourney": {
+    "title": "फसल क्रम", "previous": "पिछली", "latest": "नई प्रविष्टि", "savedPlan": "सहेजी योजना",
+    "noRecord": "कोई रिकॉर्ड नहीं", "noPlan": "सहेजी योजना नहीं", "unavailable": "उपलब्ध नहीं",
+    "state": { "harvested": "कटाई हुई", "in_field": "खेत में (दर्ज)", "planned": "नियोजित", "fallow": "दर्ज परती" },
+    "planStatus": { "current": "सहेजी गई", "outdated": "पुरानी", "unverified": "असत्यापित", "low_confidence": "कम विश्वास" }
+  },
   "tour": {
     "replay": "टूर देखें", "gettingStarted": "शुरुआत करें", "farmTour": "अपने खेत को जानें",
     "close": "टूर बंद करें", "skip": "टूर छोड़ें", "back": "पीछे", "next": "आगे", "finish": "समाप्त",

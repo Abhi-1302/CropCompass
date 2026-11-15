@@ -1,4 +1,10 @@
 {
+  "farmJourney": {
+    "title": "పంటల క్రమం", "previous": "మునుపటి", "latest": "తాజా నమోదు", "savedPlan": "భద్రపరిచిన ప్రణాళిక",
+    "noRecord": "రికార్డు లేదు", "noPlan": "భద్రపరిచిన ప్రణాళిక లేదు", "unavailable": "అందుబాటులో లేదు",
+    "state": { "harvested": "కోత పూర్తయింది", "in_field": "పొలంలో (నమోదు)", "planned": "ప్రణాళికలో", "fallow": "నమోదైన బీడు" },
+    "planStatus": { "current": "భద్రపరచబడింది", "outdated": "పాతది", "unverified": "ధృవీకరించలేదు", "low_confidence": "తక్కువ నమ్మకం" }
+  },
   "tour": {
     "replay": "టూర్ చూడండి", "gettingStarted": "ప్రారంభించండి", "farmTour": "మీ పొలాన్ని తెలుసుకోండి",
     "close": "టూర్ మూసివేయండి", "skip": "టూర్ దాటవేయండి", "back": "వెనుకకు", "next": "తర్వాత", "finish": "ముగించండి",

@@ -1,4 +1,10 @@
 {
+  "farmJourney": {
+    "title": "Crop journey", "previous": "Previous", "latest": "Latest entry", "savedPlan": "Saved plan",
+    "noRecord": "No record", "noPlan": "No saved plan", "unavailable": "Unavailable",
+    "state": { "harvested": "Harvested", "in_field": "In field (recorded)", "planned": "Planned", "fallow": "Recorded fallow" },
+    "planStatus": { "current": "Saved", "outdated": "Outdated", "unverified": "Unverified", "low_confidence": "Low confidence" }
+  },
   "tour": {
     "replay": "Take a tour", "gettingStarted": "Getting started", "farmTour": "Explore your farm",
     "close": "Close tour", "skip": "Skip tour", "back": "Back", "next": "Next", "finish": "Finish",

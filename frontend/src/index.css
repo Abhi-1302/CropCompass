@@ -121,6 +121,33 @@
   background-color: #0b1110;
 }
 
+.farm-journey-header {
+  --journey-contour: rgb(54 106 77 / 0.14);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #f0f6f2;
+}
+.farm-journey-header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-color: var(--journey-contour);
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 240'%3E%3Cdefs%3E%3ClinearGradient id='fade' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='black'/%3E%3Cstop offset='.38' stop-color='black' stop-opacity='.28'/%3E%3Cstop offset='.65' stop-color='black' stop-opacity='.12'/%3E%3Cstop offset='1' stop-color='black' stop-opacity='.8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cg fill='none' stroke='url(%23fade)' stroke-width='1.2'%3E%3Cpath d='M-40 8C40-35 145-8 152 39S155 108 217 110 292 83 326 129 420 222 520 182M-40 30C35-13 125 9 133 52S134 127 200 131 283 101 309 148 410 241 520 204M-40 52C30 9 103 25 113 66S112 146 182 153 272 122 293 166 400 260 520 226M-40 74C25 31 80 42 93 80S90 166 164 175 259 141 277 184 391 280 520 248M-40 96C20 53 58 59 74 94S67 184 146 196 247 162 261 202 380 300 520 270M-40 118C15 75 36 76 54 108S44 202 128 218 235 183 245 220M240-35C217 13 252 36 303 20S381-5 395 38 421 100 520 60M219-35C196 31 240 59 300 43S361 16 376 58 412 122 520 84M197-35C176 48 227 81 296 65S341 38 357 78 403 144 520 108'/%3E%3C/g%3E%3C/svg%3E");
+  mask-size: cover;
+  mask-position: center;
+  mask-repeat: no-repeat;
+}
+:root[data-theme="dark"] .farm-journey-header {
+  --journey-contour: rgb(143 218 182 / 0.14);
+  background-color: #111e17;
+}
+@media (forced-colors: active) {
+  .farm-journey-header::before { display: none; }
+}
+
 /* Field view: a planted crop grows in from the ground line. */
 .field-grow .field-plant {
   transform-box: fill-box;
