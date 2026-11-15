@@ -123,24 +123,26 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
   const ticks = Array.from({ length: Math.round(maxM / 0.5) + 1 }, (_, index) => index * 0.5);
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block h-auto w-full select-none">
-      {/* Sky and weather */}
-      <rect x="0" y="0" width={W} height={SURFACE} className="fill-sky-50" />
-      {sky?.windy && <Wind />}
-      {sky?.wet && <Rain />}
-      {sky?.hot && !sky.wet && <Sun hot />}
+    <>
       {sky && (
-        <text x="16" y="28" className="tabular fill-stone-600 text-[12px]">
+        <div role="group" aria-label={t("quality.weather")} className="flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-stone-200 bg-sky-50 px-4 py-2 text-xs leading-relaxed text-stone-600">
           {[
             t("field.monthNormal", { month: monthName(sky.month.month) }),
             t("field.tmax", { value: sky.month.tmax_c.toFixed(0) }),
             `${Math.round(sky.month.rain_mm)} mm`,
             sky.month.wind_ms != null ? t("field.wind", { value: sky.month.wind_ms.toFixed(1) }) : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
-        </text>
+          ].filter((value) => value != null).map((value) => (
+            <span key={value} className="tabular">{value}</span>
+          ))}
+        </div>
       )}
+    <div className="overflow-x-auto">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={label} className="block h-auto w-full min-w-[620px] select-none">
+      {/* Sky and weather */}
+      <rect x="0" y="0" width={W} height={SURFACE} className="fill-sky-50" />
+      {sky?.windy && <Wind />}
+      {sky?.wet && <Rain />}
+      {sky?.hot && !sky.wet && <Sun hot />}
 
       <rect x="0" y={SURFACE} width={RIGHT + 20} height={H - SURFACE} fill={SHADES[0]} />
       {bands.map((band, index) => (
@@ -239,5 +241,7 @@ export function FieldScene({ soilDepthCm, depthAssumed, layers, waterFraction, s
         </div>
       </foreignObject>
     </svg>
+    </div>
+    </>
   );
 }
