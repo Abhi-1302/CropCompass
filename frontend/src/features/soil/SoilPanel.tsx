@@ -1,15 +1,11 @@
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useSaveSoil, useSoil } from "../../api/hooks";
-import type { EffectiveSoil, SoilOverride, SoilProfile, SoilSummary, SoilType } from "../../api/types";
-import { Alert, Badge, Button, Card, Field, Input, PageSpinner, SectionHeader, Select } from "../../components/ui";
-import type en from "../../locales/en.json";
-import type { T } from "../crops/text";
+import { useClimate, useSaveSoil, useSoil } from "../../api/hooks";
+import type { SoilOverride, SoilProfile, SoilSummary, SoilType } from "../../api/types";
+import { AboutData, Alert, Badge, Button, Card, Field, Input, PageSpinner, SectionHeader, Select } from "../../components/ui";
+import { SoilProfileView } from "./SoilProfileView";
 
-type TextureName = keyof typeof en.soil.textureName;
-type PhClass = keyof typeof en.soil.phClass;
-type CecClass = keyof typeof en.soil.cecClass;
 type Preset = { sand_pct: number; silt_pct: number; clay_pct: number; awc_mm_per_m: number; depth_cm: number };
 
 /** Typical values for India's main soil groups; the farmer can change any of them. */
@@ -23,20 +19,7 @@ const PRESETS: Record<Exclude<SoilType, "custom">, Preset> = {
 const SOIL_TYPES: SoilType[] = ["black", "red", "alluvial", "laterite", "sandy", "custom"];
 const DEPTHS = [30, 50, 75, 100, 150] as const;
 
-const textureLabel = (t: T, value: string | null | undefined) =>
-  value ? t(`soil.textureName.${value as TextureName}`) : "—";
-const fraction = (value: number | undefined) => (value == null ? "—" : value.toFixed(2));
 const text = (value: number | null | undefined) => (value == null ? "" : String(value));
-
-function Stat({ title, value, detail }: { title: string; value: string; detail?: string }) {
-  return (
-    <Card>
-      <p className="text-sm font-medium text-stone-500">{title}</p>
-      <p className="mt-2 text-xl font-semibold text-stone-900">{value}</p>
-      {detail && <p className="mt-1 text-sm text-stone-600">{detail}</p>}
-    </Card>
-  );
-}
 
 type Draft = { soil_type: SoilType } & Record<
   "sand_pct" | "silt_pct" | "clay_pct" | "awc_mm_per_m" | "depth_cm" | "organic_carbon_pct" | "ph",
@@ -204,88 +187,10 @@ function SoilEditor({ farmId, soil, onClose }: { farmId: string; soil: SoilProfi
   );
 }
 
-function MapLayers({ summary }: { summary: SoilSummary }) {
-  const { t } = useTranslation();
-  return (
-    <Card>
-      <SectionHeader title={t("soil.layers")} subtitle={t("soil.layersSub")} />
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-stone-200 text-xs tracking-wide text-stone-500 uppercase">
-            <tr>
-              <th className="py-2 pr-4 font-medium">{t("soil.depth")}</th>
-              <th className="py-2 pr-4 font-medium">{t("soil.textureColumn")}</th>
-              <th className="py-2 pr-4 font-medium">{t("soil.fc")}</th>
-              <th className="py-2 pr-4 font-medium">{t("soil.wp")}</th>
-              <th className="py-2 font-medium">{t("soil.aw")}</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100 tabular-nums">
-            {summary.layers.map((layer) => (
-              <tr key={layer.depth}>
-                <td className="py-2 pr-4 font-medium">{layer.depth}</td>
-                <td className="py-2 pr-4">{textureLabel(t, layer.texture)}</td>
-                <td className="py-2 pr-4">{fraction(layer.field_capacity)}</td>
-                <td className="py-2 pr-4">{fraction(layer.wilting_point)}</td>
-                <td className="py-2">{fraction(layer.available_water)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </Card>
-  );
-}
-
-function SoilFacts({ soil, summary, depthAssumed }: { soil: EffectiveSoil; summary: SoilSummary | null; depthAssumed: boolean }) {
-  const { t } = useTranslation();
-  const top = summary?.topsoil;
-  return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <Stat
-        title={t("soil.texture")}
-        value={textureLabel(t, soil.texture)}
-        detail={
-          soil.clay_pct != null
-            ? t("soil.textureDetail", { sand: soil.sand_pct, silt: soil.silt_pct, clay: soil.clay_pct })
-            : undefined
-        }
-      />
-      <Stat
-        title={t("soil.water")}
-        value={t("soil.waterValue", { mm: soil.awc_mm })}
-        detail={`${t("soil.waterDetail", { depth: soil.depth_cm, perMetre: soil.awc_mm_per_m })}. ${t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}.`}
-      />
-      <Stat
-        title={t("soil.carbon")}
-        value={soil.organic_carbon_pct != null ? `${soil.organic_carbon_pct}%` : "—"}
-        detail={soil.soc_stock_t_ha_0_30cm != null ? t("soil.carbonDetail", { stock: soil.soc_stock_t_ha_0_30cm }) : undefined}
-      />
-      <Stat
-        title={t("soil.ph")}
-        value={soil.ph != null ? soil.ph.toFixed(1) : "—"}
-        detail={soil.ph_class ? t(`soil.phClass.${soil.ph_class as PhClass}`) : undefined}
-      />
-      {top && (
-        <Stat
-          title={t("soil.cec")}
-          value={top.cec_class ? t(`soil.cecClass.${top.cec_class as CecClass}`) : "—"}
-          detail={top.cec_cmol_kg != null ? t("soil.cecDetail", { value: top.cec_cmol_kg }) : undefined}
-        />
-      )}
-      {top && (
-        <Stat
-          title={t("soil.nitrogen")}
-          value={top.nitrogen_g_kg != null ? t("soil.nitrogenValue", { value: top.nitrogen_g_kg }) : "—"}
-        />
-      )}
-    </div>
-  );
-}
-
-export function SoilPanel({ farmId }: { farmId: string }) {
+export function SoilPanel({ farmId, verified }: { farmId: string; verified: boolean }) {
   const { t } = useTranslation();
   const soil = useSoil(farmId, true);
+  const climate = useClimate(farmId, verified);
   const save = useSaveSoil(farmId);
   const [editing, setEditing] = useState(false);
   if (soil.isPending) return <PageSpinner />;
@@ -296,14 +201,18 @@ export function SoilPanel({ farmId }: { farmId: string }) {
   const source = data.effective.source;
   const depthAssumed = data.override?.depth_cm == null;
   return (
-    <div className="space-y-6">
-      {!summary && source !== "farmer" && <Alert tone="info">{t("soil.unavailable")}</Alert>}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold text-stone-900">{t("soil.used")}</h2>
-          <Badge tone={source === "farmer" ? "green" : source === "soilgrids" ? "sky" : "amber"}>
-            {t(`soil.source.${source}`)}
-          </Badge>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-lg font-semibold text-stone-900">{t("soil.used")}</h2>
+            <Badge tone={source === "farmer" ? "green" : source === "soilgrids" ? "sky" : "amber"}>
+              {t(`soil.source.${source}`)}
+            </Badge>
+          </div>
+          <p className="mt-0.5 text-sm text-stone-500">
+            {!summary && source !== "farmer" ? t("soil.unavailable") : depthAssumed ? t("soil.depthAssumptionNote") : t("soil.vis.yours")}
+          </p>
         </div>
         {!editing && (
           <div className="flex flex-wrap gap-2">
@@ -318,18 +227,15 @@ export function SoilPanel({ farmId }: { farmId: string }) {
           </div>
         )}
       </div>
-      <p className="text-sm text-stone-600">
-        {t("field.soilDepth", { value: (data.effective.depth_cm / 100).toFixed(1) })}. {t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}.
-        {depthAssumed && <> {t("soil.depthAssumptionNote")}</>}
-      </p>
       {save.isSuccess && !editing && <Alert tone="info">{t("soil.saved")}</Alert>}
       {editing ? (
         <SoilEditor farmId={farmId} soil={data} onClose={() => setEditing(false)} />
       ) : (
-        <SoilFacts soil={data.effective} summary={summary} depthAssumed={depthAssumed} />
+        <Card>
+          <SoilProfileView soil={data.effective} summary={summary} soilNow={climate.data?.soil_now ?? null} depthAssumed={depthAssumed} />
+        </Card>
       )}
-      {summary && <MapLayers summary={summary} />}
-      <p className="text-xs text-stone-500">{t("soil.sourceNote")}</p>
+      <AboutData><p>{t("soil.sourceNote")}</p></AboutData>
     </div>
   );
 }

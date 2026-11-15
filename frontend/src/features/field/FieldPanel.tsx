@@ -1,137 +1,20 @@
-import { CloudRain, Droplets, GripVertical, Layers, Pencil, Search, Sprout as SproutIcon, Sun, Wind, X } from "lucide-react";
+import { GripVertical, Search, Sprout as SproutIcon, X } from "lucide-react";
 import type { DragEvent, ReactNode } from "react";
 import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useCatalog, useClimate, useCropFit, useNextCrop, useSoil } from "../../api/hooks";
-import type { Catalog, CropOutcome, EffectiveSoil, Farm, Irrigation, NextCropAdvice, NextCropOption, SoilSummary } from "../../api/types";
-import { Alert, Badge, cx, Spinner } from "../../components/ui";
-import { fullDate, mm, money, monthName, percent, signed } from "../../lib/format";
-import { cropName, ruleText, yieldText } from "../crops/text";
+import type { Catalog, CropOutcome, EffectiveSoil, Farm, Irrigation, NextCropOption, SoilSummary } from "../../api/types";
+import { AboutData, Alert, Badge, cx, DotScale, Segmented, Spinner } from "../../components/ui";
+import { fullDate, mm, money, percent, signed } from "../../lib/format";
+import { cropName, familyName, ruleText, yieldText } from "../crops/text";
 import { DEFAULT_PRIORITIES } from "../plan/parts";
 import { FieldScene } from "./FieldScene";
-import type { Sky } from "./model";
 import { driesOut, rootZone, skyOf, verdictOf, VERDICT_TONE } from "./model";
 
 const IRRIGATIONS: Irrigation[] = ["rainfed", "protective", "full"];
 const DRAG_TYPE = "application/x-cropcompass-crop";
 
-function Tile({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
-  return (
-    <div className="min-w-0 rounded-xl border border-stone-200 bg-surface p-4">
-      <p className="flex items-center gap-2 text-xs font-semibold tracking-wide text-stone-500 uppercase">
-        {icon}
-        {title}
-      </p>
-      <div className="mt-2 space-y-0.5 text-sm text-stone-700">{children}</div>
-    </div>
-  );
-}
-
-function PreviousTile({ advice, previous, catalog }: {
-  advice: NextCropAdvice | undefined;
-  previous: { crops: string[]; end_date: string; harvested: boolean } | null | undefined;
-  catalog?: Catalog;
-}) {
-  const { t } = useTranslation();
-  const inField = advice?.in_field;
-  return (
-    <Tile icon={<SproutIcon className="size-3.5" aria-hidden="true" />} title={t(inField ? "field.inField" : "field.previous")}>
-      {inField ? (
-        <>
-          <p className="text-base font-semibold text-stone-900">{cropName(catalog, inField.crop)}</p>
-          <p className="text-xs text-stone-500">{t("field.harvestBy", { date: fullDate(inField.expected_harvest) })}</p>
-        </>
-      ) : previous?.crops.length ? (
-        <>
-          <p className="text-base font-semibold text-stone-900">{previous.crops.map((id) => cropName(catalog, id)).join(" + ")}</p>
-          <p className="text-xs text-stone-500">{t("field.endedOn", { date: fullDate(previous.end_date) })}</p>
-        </>
-      ) : (
-        <>
-          <p className="text-base font-semibold text-stone-900">{t("field.noPrevious")}</p>
-          <p className="text-xs text-stone-500">{t("field.noPreviousHint")}</p>
-        </>
-      )}
-    </Tile>
-  );
-}
-
-function WeatherTile({ sky, rain }: { sky: Sky; rain: { mm: number; median: number; percentile: number } | null }) {
-  const { t } = useTranslation();
-  const month = sky.month;
-  const tags: { key: "hot" | "wet" | "windy"; icon: ReactNode }[] = [];
-  if (sky.hot) tags.push({ key: "hot", icon: <Sun className="size-3.5" aria-hidden="true" /> });
-  if (sky.wet) tags.push({ key: "wet", icon: <CloudRain className="size-3.5" aria-hidden="true" /> });
-  if (sky.windy) tags.push({ key: "windy", icon: <Wind className="size-3.5" aria-hidden="true" /> });
-  const band = rain ? (rain.percentile < 0.33 ? "rainBelow" : rain.percentile > 0.67 ? "rainAbove" : "rainNormal") : null;
-  return (
-    <Tile icon={<CloudRain className="size-3.5" aria-hidden="true" />} title={t("field.weather")}>
-      {rain && band && (
-        <p>
-          <span className="font-semibold text-stone-900">{t(`field.${band}`)}</span>{" "}
-          <span className="text-stone-500">{t("field.seasonRain", { mm: mm(rain.mm), median: mm(rain.median) })}</span>
-        </p>
-      )}
-      <p className="tabular">
-        {t("field.monthNormal", { month: monthName(month.month) })}: {t("field.tmax", { value: month.tmax_c.toFixed(0) })} ·{" "}
-        {mm(month.rain_mm)}
-        {month.wind_ms != null && <> · {t("field.wind", { value: month.wind_ms.toFixed(1) })}</>}
-      </p>
-      {tags.length > 0 && (
-        <p className="flex flex-wrap gap-1.5 pt-1">
-          {tags.map((tag) => (
-            <span key={tag.key} className="inline-flex items-center gap-1 rounded-md bg-stone-100 px-2 py-0.5 text-xs font-medium text-stone-700">
-              {tag.icon}
-              {t(`field.${tag.key}`)}
-            </span>
-          ))}
-        </p>
-      )}
-      <p className="text-xs text-stone-500">{t("field.weatherAsOf", { date: fullDate(sky.asOf) })}</p>
-    </Tile>
-  );
-}
-
-function SoilTile({ soil, depthAssumed, onOpenSoil }: { soil: EffectiveSoil; depthAssumed: boolean; onOpenSoil: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <Tile icon={<Layers className="size-3.5" aria-hidden="true" />} title={t("field.soil")}>
-      <p className="text-base font-semibold text-stone-900 capitalize">
-        {soil.texture ? t(`soil.textureName.${soil.texture}`, { defaultValue: soil.texture }) : t("field.soilUnknown")}
-      </p>
-      <p className="tabular">{t("field.soilLine", { depth: (soil.depth_cm / 100).toFixed(1), mm: mm(soil.awc_mm) })}</p>
-      <p className="text-xs font-medium text-stone-700">{t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}</p>
-      <p className="tabular text-xs text-stone-500">
-        {[
-          soil.organic_carbon_pct != null && t("field.oc", { value: soil.organic_carbon_pct.toFixed(2) }),
-          soil.ph != null && t("field.ph", { value: soil.ph.toFixed(1) }),
-          t(`soil.source.${soil.source}`, { defaultValue: soil.source }),
-        ]
-          .filter(Boolean)
-          .join(" · ")}
-      </p>
-      <button type="button" onClick={onOpenSoil} className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700 hover:underline">
-        <Pencil className="size-3.5 shrink-0" aria-hidden="true" />{t("field.editSoil")}
-      </button>
-    </Tile>
-  );
-}
-
-function WaterTile({ advice }: { advice: NextCropAdvice }) {
-  const { t } = useTranslation();
-  const now = advice.soil_now;
-  const compare = now.percentile < 0.5 ? t("plan.drierThan", { pct: percent(1 - now.percentile) }) : t("plan.wetterThan", { pct: percent(now.percentile) });
-  return (
-    <Tile icon={<Droplets className="size-3.5" aria-hidden="true" />} title={t("field.water")}>
-      <p className="text-base font-semibold text-stone-900 tabular">{percent(now.fraction)}</p>
-      <div className="h-1.5 overflow-hidden rounded-full bg-stone-200" aria-hidden="true">
-        <div className="h-full rounded-full bg-sky-500" style={{ width: `${Math.round(Math.min(1, Math.max(0, now.fraction)) * 100)}%` }} />
-      </div>
-      <p className="tabular text-xs text-stone-500">{t("field.waterLine", { mm: mm(now.mm), capacity: mm(now.capacity_mm) })}</p>
-      <p className="text-xs text-stone-500">{compare}</p>
-    </Tile>
-  );
-}
+const VERDICT_EDGE = { good: "border-t-emerald-500", watch: "border-t-amber-500", poor: "border-t-red-500", blocked: "border-t-red-500" } as const;
 
 type Pick = { id: string; source: "next" | "seasonal"; outcome: CropOutcome; option?: NextCropOption };
 
@@ -200,7 +83,7 @@ function WaterBalance({ outcome }: { outcome: CropOutcome }) {
   const scale = Math.max(supply, need, 1);
   return (
     <div>
-      <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">{t("field.balanceTitle")}</p>
+      <p className="text-sm font-semibold text-stone-900">{t("field.balanceTitle")}</p>
       <div className="relative mt-2 h-4 overflow-hidden rounded bg-stone-100">
         <div className="flex h-full">
           {parts.map((part) => (
@@ -231,11 +114,10 @@ function WaterBalance({ outcome }: { outcome: CropOutcome }) {
   );
 }
 
-function Readout({ pick, catalog, soil, depthAssumed, irrigation, onIrrigation, carbonYears, currency }: {
+function Readout({ pick, catalog, soil, irrigation, onIrrigation, carbonYears, currency }: {
   pick: Pick;
   catalog?: Catalog;
   soil: EffectiveSoil;
-  depthAssumed: boolean;
   irrigation: Irrigation;
   onIrrigation: (value: Irrigation) => void;
   carbonYears: number | null;
@@ -260,8 +142,6 @@ function Readout({ pick, catalog, soil, depthAssumed, irrigation, onIrrigation, 
     );
   }
   if (outcome.water.met != null) why.push(t("field.whyWater", { pct: percent(outcome.water.met), need: mm(outcome.water.need_mm) }));
-  if (driesOut(outcome)) why.push(t("field.whyDry"));
-  if (fail.n > 0) why.push(t("field.whyFail", { k: fail.k, n: fail.n }));
   if (heat && heat.p != null && heat.p > 0 && outcome.heat.threshold_c != null) {
     why.push(t("field.whyHeat", { c: outcome.heat.threshold_c, k: heat.k, n: heat.n }));
   }
@@ -271,7 +151,7 @@ function Readout({ pick, catalog, soil, depthAssumed, irrigation, onIrrigation, 
   const nextIrrigation = IRRIGATIONS[IRRIGATIONS.indexOf(irrigation) + 1];
   if (driesOut(outcome) && nextIrrigation) {
     help.push({
-      text: t("field.helpIrrigate"),
+      text: "",
       action: (
         <button type="button" onClick={() => onIrrigation(nextIrrigation)} className="font-medium text-emerald-700 underline-offset-2 hover:underline">
           {t("field.helpIrrigateAction", { level: t(`farms.irrigation.${nextIrrigation}`) })}
@@ -303,55 +183,86 @@ function Readout({ pick, catalog, soil, depthAssumed, irrigation, onIrrigation, 
     help.push({ text: t("field.helpOrganic", { value: soil.organic_carbon_pct.toFixed(2) }), general: true });
   }
 
+  const name = cropName(catalog, pick.id);
+  const info = catalog?.crops.find((crop) => crop.id === pick.id);
+  const family = info?.family ? familyName(catalog, info.family) : null;
+  const profile = [
+    family,
+    info && t("field.briefDays", { min: info.duration_days[0], max: info.duration_days[1] }),
+    rootM != null && t("field.briefRoots", { value: rootM.toFixed(1) }),
+  ].filter(Boolean).join(" · ");
+  const limit = verdict === "blocked" && outcome.rules[0]
+    ? ruleText(t, outcome.rules[0], catalog)
+    : driesOut(outcome)
+      ? t("field.briefLimitWater")
+      : heat && heat.p != null && heat.p > 0.2
+        ? t("field.briefLimitHeat")
+        : verdict === "good" ? t("field.briefLimitNone") : null;
+  const brief = [t(`field.brief.${verdict}`, { crop: name }), limit].filter(Boolean).join(" ");
+  const shown = new Set([limit]);
+  const reasons = why.filter((line) => !shown.has(line));
+  const failShare = fail.n ? fail.k / fail.n : null;
+
   return (
-    <section className="rounded-xl border border-stone-200 bg-surface p-5" aria-live="polite">
-      <div className="flex flex-wrap items-center gap-3">
-        <h3 className="text-xl font-semibold text-stone-900">{cropName(catalog, pick.id)}</h3>
-        <Badge tone={VERDICT_TONE[verdict].badge}>{t(`field.verdict.${verdict}`)}</Badge>
-        {pick.option && <span className="text-xs text-stone-500">{t("field.rank", { rank: pick.option.rank })}</span>}
+    <section className={cx("overflow-hidden rounded-2xl border border-t-4 border-stone-200 bg-surface", VERDICT_EDGE[verdict])} aria-live="polite">
+      <div className="border-b border-stone-200 px-5 pt-5 pb-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <h3 className="text-xl font-semibold tracking-tight text-stone-900">{t("field.reportTitle", { crop: name })}</h3>
+          <Badge tone={VERDICT_TONE[verdict].badge}>{t(`field.verdict.${verdict}`)}</Badge>
+          {pick.option && <span className="text-xs text-stone-500">{t("field.rank", { rank: pick.option.rank })}</span>}
+        </div>
+        {profile && <p className="mt-1 text-xs text-stone-500">{profile}</p>}
+        <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-stone-800">{brief}</p>
       </div>
 
-      <dl className="mt-4 grid grid-cols-2 gap-4 border-y border-stone-200 py-4 sm:grid-cols-4">
-        {([
-          ["field.mYield", yieldText(t, outcome.yield.p50)],
-          ["field.mIncome", money(outcome.income.mean, currency)],
-          ["field.mFail", fail.n ? `${fail.k} / ${fail.n}` : "—"],
-          ["field.mIrrigation", outcome.water.irrigations ? `${outcome.water.irrigations} × · ${mm(outcome.water.irrigation_mm)}` : "—"],
-        ] as const).map(([key, value]) => (
-          <div key={key}>
-            <dt className="text-xs font-medium text-stone-500">{t(key)}</dt>
-            <dd className="tabular mt-0.5 text-lg font-semibold text-stone-900">{value}</dd>
-          </div>
-        ))}
+      <dl className="grid grid-cols-2 divide-stone-200 border-b border-stone-200 sm:grid-cols-4 sm:divide-x">
+        <div className="px-5 py-4">
+          <dt className="text-xs font-medium text-stone-500">{t("field.mYield")}</dt>
+          <dd className="tabular mt-1 text-lg font-semibold text-stone-900">{yieldText(t, outcome.yield.p50)}</dd>
+        </div>
+        <div className="px-5 py-4">
+          <dt className="text-xs font-medium text-stone-500">{t("field.mIncome")}</dt>
+          <dd className={cx("tabular mt-1 text-lg font-semibold", (outcome.income.mean ?? 0) < 0 ? "text-red-700" : "text-stone-900")}>{money(outcome.income.mean, currency)}</dd>
+        </div>
+        <div className="px-5 py-4">
+          <dt className="text-xs font-medium text-stone-500">{t("field.mFail")}</dt>
+          <dd className="tabular mt-1 text-lg font-semibold text-stone-900">{fail.n ? `${fail.k} / ${fail.n}` : "—"}</dd>
+          {failShare != null && <dd className="mt-1.5"><DotScale p={failShare} tone={failShare > 0.3 ? "warn" : "good"} /></dd>}
+        </div>
+        <div className="px-5 py-4">
+          <dt className="text-xs font-medium text-stone-500">{t("field.mIrrigation")}</dt>
+          <dd className="tabular mt-1 text-lg font-semibold text-stone-900">{outcome.water.irrigations ? `${outcome.water.irrigations} × · ${mm(outcome.water.irrigation_mm)}` : "—"}</dd>
+        </div>
       </dl>
 
-      <div className="mt-4 grid gap-6 lg:grid-cols-2">
-        <div className="space-y-4">
+      <div className="grid gap-6 p-5 lg:grid-cols-2">
+        <div className="space-y-5">
           <WaterBalance outcome={outcome} />
-          <div>
-            <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">{t("field.why")}</p>
-            <p className="mt-2 text-xs text-stone-600">{t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}</p>
-            <ul className="mt-2 space-y-1.5 text-sm text-stone-700">
-              {why.map((line) => (
-                <li key={line} className="flex gap-2">
-                  <span className="mt-2 size-1 shrink-0 rounded-full bg-stone-400" aria-hidden="true" />
-                  {line}
-                </li>
-              ))}
-            </ul>
-          </div>
+          {reasons.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-stone-900">{t("field.why")}</p>
+              <ul className="mt-2 space-y-1.5 text-sm text-stone-700">
+                {reasons.map((line) => (
+                  <li key={line} className="flex gap-2">
+                    <span className="mt-2 size-1 shrink-0 rounded-full bg-stone-400" aria-hidden="true" />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
         <div>
-          <p className="text-xs font-semibold tracking-wide text-stone-500 uppercase">{t("field.helpTitle")}</p>
+          <p className="text-sm font-semibold text-stone-900">{t("field.helpTitle")}</p>
           {help.length ? (
             <ol className="mt-2 space-y-2 text-sm text-stone-700">
               {help.map((item, index) => (
-                <li key={item.text} className="flex gap-3 rounded-lg border border-stone-200 p-3">
-                  <span className="tabular text-xs font-semibold text-stone-400">0{index + 1}</span>
+                <li key={index} className="flex gap-3 rounded-lg bg-stone-100/70 px-3 py-2.5">
+                  <span className="tabular pt-px text-xs font-semibold text-emerald-700">{index + 1}</span>
                   <span className="min-w-0">
                     {item.text}
                     {item.general && <span className="text-stone-500"> {t("field.general")}</span>}
-                    {item.action && <span className="mt-1 block">{item.action}</span>}
+                    {item.action && <span className={cx(item.text && "mt-1", "block")}>{item.action}</span>}
                   </span>
                 </li>
               ))}
@@ -367,7 +278,7 @@ function Readout({ pick, catalog, soil, depthAssumed, irrigation, onIrrigation, 
 
 /** `verified` is false while weather is still being checked: next-crop advice can run on a disclosed proxy,
  * but the climate profile and the all-crop fit need the verified record. */
-export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verified: boolean; onOpenSoil: () => void }) {
+export function FieldPanel({ farm, verified }: { farm: Farm; verified: boolean }) {
   const { t } = useTranslation();
   const [irrigation, setIrrigation] = useState<Irrigation>(farm.irrigation);
   const [placed, setPlaced] = useState<{ id: string; source: Pick["source"] } | null>(null);
@@ -435,38 +346,20 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
 
   return (
     <div className="space-y-6">
-      <section>
-        <div className="mb-3">
-          <h2 className="text-lg font-semibold text-stone-900">{t("field.conditionsTitle")}</h2>
-          <p className="text-sm text-stone-500">{t("field.conditionsSub")}</p>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <PreviousTile advice={adviceData} previous={fitData?.previous} catalog={catalog} />
-          {!verified || climate.isError ? (
-            <Tile icon={<CloudRain className="size-3.5" aria-hidden="true" />} title={t("field.weather")}>
-              <p className="text-sm text-stone-600">{t("field.weatherPending")}</p>
-            </Tile>
-          ) : sky ? <WeatherTile sky={sky} rain={climate.data?.current_season ? { mm: climate.data.current_season.rain_mm, median: climate.data.current_season.median_mm, percentile: climate.data.current_season.rain_percentile } : null} /> : <Tile icon={<CloudRain className="size-3.5" aria-hidden="true" />} title={t("field.weather")}><Spinner className="size-4" /></Tile>}
-          {effective ? <SoilTile soil={effective} depthAssumed={depthAssumed} onOpenSoil={onOpenSoil} /> : <Tile icon={<Layers className="size-3.5" aria-hidden="true" />} title={t("field.soil")}><Spinner className="size-4" /></Tile>}
-          {adviceData ? <WaterTile advice={adviceData} /> : <Tile icon={<Droplets className="size-3.5" aria-hidden="true" />} title={t("field.water")}>{advice.isError ? <span>{t("field.previewUnavailable")}</span> : <Spinner className="size-4" />}</Tile>}
-        </div>
-      </section>
-
       {(advice.error || (verified && fit.error)) && <Alert tone="error">{(advice.error ?? fit.error)?.message}</Alert>}
 
-      <section className="grid gap-4 lg:grid-cols-[20rem_minmax(0,1fr)]">
-        <div className="min-w-0 space-y-4">
-          <fieldset>
-            <legend className="text-sm font-medium text-stone-800">{t("field.irrigation")}</legend>
-            <div className="mt-1.5 grid grid-cols-3 gap-1 rounded-lg bg-stone-100 p-1">
-              {IRRIGATIONS.map((key) => (
-                <button key={key} type="button" aria-pressed={irrigation === key} onClick={() => setIrrigation(key)}
-                  className={cx("break-words rounded-md px-2 py-1.5 text-xs font-medium transition", irrigation === key ? "bg-surface text-stone-900 shadow-sm" : "text-stone-600 hover:text-stone-900")}>
-                  {t(`farms.irrigation.${key}`)}
-                </button>
-              ))}
-            </div>
-          </fieldset>
+      <section className="grid gap-6 lg:grid-cols-[20rem_minmax(0,1fr)]">
+        <div className="min-w-0 space-y-5">
+          <div>
+            <p className="text-sm font-medium text-stone-800">{t("field.irrigation")}</p>
+            <Segmented
+              className="mt-1.5 flex w-full"
+              label={t("field.irrigation")}
+              value={irrigation}
+              onChange={setIrrigation}
+              items={IRRIGATIONS.map((key) => ({ key, label: t(`field.irrigationShort.${key}`), title: t(`farms.irrigation.${key}`) }))}
+            />
+          </div>
           <div>
             <label htmlFor={searchId} data-tour-id="field-search" className="text-sm font-medium text-stone-800">{t("field.searchCrops")}</label>
             <div className="relative mt-1.5">
@@ -475,9 +368,9 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
                 className="w-full min-w-0 rounded-lg border border-stone-300 bg-surface py-2 pr-3 pl-9 text-sm text-stone-900" />
             </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-stone-900">{t("field.trayTitle", { season })}</h2>
-            <p className="text-sm text-stone-500">{t("field.nextSource")}</p>
+          <div className="border-t border-stone-200 pt-5">
+            <h2 className="text-base font-semibold text-stone-900">{t("field.trayTitle", { season })}</h2>
+            <p className="mt-0.5 text-xs text-stone-500">{t("field.nextSource")}</p>
           </div>
           {advice.isFetching || advice.isPending ? (
             <p className="flex items-center gap-2 text-sm text-stone-500"><Spinner className="size-4" />{t("field.loading")}</p>
@@ -488,11 +381,16 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
                   disabled={updating} previewId={previewId} onPlace={() => place(item)} />
               ))}
             </ol>
+          ) : top.length ? (
+            <p className="text-sm text-stone-500">{t("field.noMatches")}</p>
           ) : (
-            <p className="text-sm text-amber-800">{t(top.length ? "field.noMatches" : "plan.noOptions")}</p>
+            <div className="rounded-xl border border-dashed border-amber-500/50 bg-amber-50 px-4 py-3">
+              <p className="text-sm font-semibold text-amber-900">{t("field.noTopTitle")}</p>
+              <p className="mt-1 text-xs leading-relaxed text-amber-900/80">{t("field.noTopHint")}</p>
+            </div>
           )}
           <details open={search.trim() ? true : undefined}>
-            <summary className="cursor-pointer py-2 text-sm font-semibold text-stone-900">{t("field.browseCrops")}</summary>
+            <summary className="cursor-pointer rounded-md py-2 text-sm font-semibold text-emerald-700 hover:text-emerald-800">{t("field.browseCrops")}</summary>
             <p className="mb-3 text-xs text-stone-500">{t("field.seasonalSource")}</p>
             {!verified ? <p className="text-sm text-stone-500">{t("field.anyCropPending")}</p> : fit.isPending || fit.isFetching ? (
               <p className="flex items-center gap-2 text-sm text-stone-500"><Spinner className="size-4" />{t("field.loading")}</p>
@@ -507,15 +405,17 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
           </details>
         </div>
 
-        <div id={previewId} ref={previewRef} className="min-w-0 scroll-mt-40 space-y-4 self-start lg:sticky lg:top-24" aria-busy={updating}>
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-lg font-semibold text-stone-900">{t("field.previewTitle")}</h2>
+        <div id={previewId} ref={previewRef} className="min-w-0 scroll-mt-40 space-y-4 self-start" aria-busy={updating}>
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-stone-900">{t("field.previewTitle")}</h2>
+              <div role="status" aria-live="polite" className="mt-0.5 text-xs text-stone-500">
+                {updating ? <span className="inline-flex items-center gap-2"><Spinner className="size-3.5" />{t("field.updating")}</span>
+                  : pick ? `${cropName(catalog, pick.id)} · ${t(pick.source === "next" ? "field.nextSource" : "field.seasonalSource")}`
+                  : placed ? t("field.previewUnavailable") : t("field.dropHint")}
+              </div>
+            </div>
             <Badge tone="stone">{t("field.unsaved")}</Badge>
-          </div>
-          <div role="status" aria-live="polite" className="text-sm text-stone-600">
-            {updating ? <span className="inline-flex items-center gap-2"><Spinner className="size-4" />{t("field.updating")}</span>
-              : pick ? `${cropName(catalog, pick.id)} · ${t(pick.source === "next" ? "field.nextSource" : "field.seasonalSource")}`
-              : placed ? t("field.previewUnavailable") : t("field.choosePreview")}
           </div>
           <div
             onDragOver={(event) => {
@@ -559,24 +459,23 @@ export function FieldPanel({ farm, verified, onOpenSoil }: { farm: Farm; verifie
             ) : (
               <div className="flex h-72 items-center justify-center"><Spinner className="size-6 text-stone-400" /></div>
             )}
-            {!placed && !updating && effective && (
+            {over && !updating && effective && (
               <div className="pointer-events-none absolute inset-x-0 top-[38%] flex justify-center px-4">
-                <p className={cx("rounded-lg border border-dashed px-4 py-2 text-sm font-medium backdrop-blur-sm", over ? "border-emerald-500 bg-emerald-50/80 text-emerald-800" : "border-stone-400 bg-surface/80 text-stone-600")}>
-                  {t(over ? "field.releasePreview" : "field.choosePreview")}
+                <p className="rounded-lg border border-dashed border-emerald-500 bg-emerald-50/80 px-4 py-2 text-sm font-medium text-emerald-800 backdrop-blur-sm">
+                  {t("field.releasePreview")}
                 </p>
               </div>
             )}
           </div>
-          <p className="mt-2 text-xs text-stone-500">{t("field.groundwaterNote")}</p>
           {pick && effective && (
-            <Readout pick={pick} catalog={catalog} soil={effective} depthAssumed={depthAssumed} irrigation={irrigation} onIrrigation={setIrrigation}
+            <Readout pick={pick} catalog={catalog} soil={effective} irrigation={irrigation} onIrrigation={setIrrigation}
               carbonYears={carbonYears} currency={adviceData?.economics.currency ?? catalog?.economics.currency ?? "INR"} />
           )}
-          {period && (
-            <p className="text-xs text-stone-500">
-              {t("field.modelNote", { n: period.n_years, first: period.first_year, last: period.last_year })}
-            </p>
-          )}
+          <AboutData>
+            <p>{t("field.groundwaterNote")}</p>
+            <p>{t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}. {depthAssumed && t("soil.depthAssumptionNote")}</p>
+            {period && <p>{t("field.modelNote", { n: period.n_years, first: period.first_year, last: period.last_year })}</p>}
+          </AboutData>
         </div>
       </section>
     </div>

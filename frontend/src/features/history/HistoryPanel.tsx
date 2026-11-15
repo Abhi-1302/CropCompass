@@ -51,8 +51,14 @@ function SatelliteChart({ view, records, catalog }: { view: VegetationView; reco
           type: "line",
           showSymbol: false,
           data: view.points.map((point) => [point.date, point.smooth]),
-          lineStyle: { width: 2.5, color: "#047857" },
-          itemStyle: { color: "#047857" },
+          lineStyle: { width: 2.5, color: "#10b981" },
+          itemStyle: { color: "#10b981" },
+          areaStyle: {
+            color: {
+              type: "linear", x: 0, y: 0, x2: 0, y2: 1,
+              colorStops: [{ offset: 0, color: "rgba(16,185,129,0.32)" }, { offset: 1, color: "rgba(16,185,129,0)" }],
+            },
+          },
           markArea: {
             silent: true,
             label: { color: "#44403c", fontSize: 11, position: "insideTop" },
