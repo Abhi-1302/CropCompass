@@ -445,7 +445,6 @@ export function FieldPanel({ farm, verified }: { farm: Farm; verified: boolean }
               )}
             </div>
             {effective ? (
-              <div className="overflow-x-auto"><div className="min-w-[620px]">
               <FieldScene
                 soilDepthCm={effective.depth_cm}
                 depthAssumed={depthAssumed}
@@ -455,7 +454,6 @@ export function FieldPanel({ farm, verified }: { farm: Farm; verified: boolean }
                 crop={pick && zone && verdict ? { key: `${pick.id}-${irrigation}`, verdict, zone, wilted: driesOut(pick.outcome) } : null}
                 label={`${sceneLabel} ${t(depthAssumed ? "soil.depthAssumed" : "soil.depthEntered")}.`}
               />
-              </div></div>
             ) : (
               <div className="flex h-72 items-center justify-center"><Spinner className="size-6 text-stone-400" /></div>
             )}
